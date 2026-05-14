@@ -10,17 +10,18 @@ use App\Models\ExchangeRate;
 use App\Models\Sale;
 use App\Services\CustomerListingService;
 use App\Services\CustomerPersistenceService;
+use App\Services\PlanEntitlementService;
 use App\Traits\SmartPaginationTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Pagination\LengthAwarePaginator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -193,6 +194,8 @@ class CustomerController extends Controller
                     ->with('message', 'No tienes permisos para crear clientes')
                     ->with('icons', 'error');
             }
+
+            app(PlanEntitlementService::class)->assertCanCreate(Auth::user(), 'customers');
 
             $customer = $persistence->validateAndCreate($request->all());
 

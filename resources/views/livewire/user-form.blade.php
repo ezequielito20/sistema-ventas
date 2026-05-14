@@ -18,6 +18,7 @@
     <div class="ui-panel">
         <div class="ui-panel__body">
             <form wire:submit="saveAndBack" class="space-y-6">
+                <x-plan-limit-alert />
                 <section class="space-y-4">
                     <div>
                         <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-300">Datos del usuario</h2>

@@ -24,6 +24,7 @@
     <div class="ui-panel">
         <div class="ui-panel__body">
             <form wire:submit="saveAndBack" class="space-y-6">
+                <x-plan-limit-alert />
                 <div class="space-y-4">
                     <h3 class="text-sm font-semibold text-slate-200">Datos del cliente</h3>
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">

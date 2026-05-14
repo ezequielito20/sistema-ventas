@@ -11,8 +11,8 @@ return [
     | - limit_relation: relación en App\Models\Company para contar cupos (null = no limitable por registros)
     | - super_admin_only: solo usuarios isSuperAdmin ven el ítem (ej. escáner)
     | - platform_console_only: consola plataforma; no en formulario de plan ni en menú tenant
-    | - in_plan_form: aparece en el formulario de creación/edición de planes
-    |
+    | - plan_limit_is_daily: si es true, el cupo del formulario de plan se guarda como límite diario
+    |   (p. ej. ventas/compras por día natural), no como tope total de registros.
     */
     'modules' => [
         'companies' => [
@@ -83,6 +83,7 @@ return [
             'label' => 'Ventas',
             'permission_prefixes' => ['sales'],
             'limit_relation' => 'sales',
+            'plan_limit_is_daily' => true,
             'super_admin_only' => false,
             'platform_console_only' => false,
             'in_plan_form' => true,
@@ -91,6 +92,7 @@ return [
             'label' => 'Compras',
             'permission_prefixes' => ['purchases'],
             'limit_relation' => 'purchases',
+            'plan_limit_is_daily' => true,
             'super_admin_only' => false,
             'platform_console_only' => false,
             'in_plan_form' => true,

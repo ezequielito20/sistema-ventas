@@ -3,13 +3,17 @@
 namespace App\Services;
 
 use App\Models\CashCount;
+use App\Models\CashMovement;
+use App\Models\Customer;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleDetail;
-use App\Models\Product;
-use App\Models\Customer;
+use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 class SaleService
 {
@@ -195,7 +199,7 @@ class SaleService
     /**
      * Buscar ventas con filtros y paginación.
      */
-    public function searchSales(int $companyId, array $filters = [], int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function searchSales(int $companyId, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = Sale::select(['id', 'sale_date', 'total_price', 'customer_id', 'company_id', 'note'])
             ->with([
@@ -211,8 +215,8 @@ class SaleService
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'LIKE', "%{$search}%")
-                    ->orWhereRaw("CAST(total_price AS TEXT) ILIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("CAST(sale_date AS TEXT) ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw('CAST(total_price AS TEXT) ILIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('CAST(sale_date AS TEXT) ILIKE ?', ["%{$search}%"])
                     ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YY') ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YY') ILIKE ?", ["%{$search}%"])
@@ -268,7 +272,7 @@ class SaleService
      * Retornar el query builder de búsqueda SIN paginar.
      * Usado por toggleSelectAllCurrentPage() para obtener los IDs de la página actual.
      *
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function searchSalesQuery(int $companyId, array $filters = [])
     {
@@ -285,8 +289,8 @@ class SaleService
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'LIKE', "%{$search}%")
-                    ->orWhereRaw("CAST(total_price AS TEXT) ILIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("CAST(sale_date AS TEXT) ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw('CAST(total_price AS TEXT) ILIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('CAST(sale_date AS TEXT) ILIKE ?', ["%{$search}%"])
                     ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YY') ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YY') ILIKE ?", ["%{$search}%"])
@@ -365,7 +369,7 @@ class SaleService
 
                 return [
                     'success' => false,
-                    'message' => "No se puede eliminar: el cliente {$customerName} tiene {$debtPayments->count()} pago(s) de deuda posterior(es) por \$" . number_format((float) $totalPaid, 2) . ". Elimine los pagos primero.",
+                    'message' => "No se puede eliminar: el cliente {$customerName} tiene {$debtPayments->count()} pago(s) de deuda posterior(es) por \$".number_format((float) $totalPaid, 2).'. Elimine los pagos primero.',
                     'type' => 'warning',
                 ];
             }
@@ -377,8 +381,8 @@ class SaleService
                 ->where('company_id', $companyId)
                 ->where('customer_id', $sale->customer_id)
                 ->where(function ($q) use ($sale) {
-                    $q->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
-                      ->orWhere('notes', 'like', '%Venta #' . $sale->id . '%');
+                    $q->where('notes', 'like', '%Venta Masiva #'.$sale->id.'%')
+                        ->orWhere('notes', 'like', '%Venta #'.$sale->id.'%');
                 })
                 ->get();
 
@@ -402,7 +406,7 @@ class SaleService
             }
 
             // Eliminar movimientos de caja asociados
-            \App\Models\CashMovement::where('description', 'Venta #' . $sale->id)
+            CashMovement::where('description', 'Venta #'.$sale->id)
                 ->whereHas('cashCount', fn ($q) => $q->where('company_id', $companyId))
                 ->delete();
 
@@ -411,8 +415,8 @@ class SaleService
                 ->where('company_id', $companyId)
                 ->where('customer_id', $sale->customer_id)
                 ->where(function ($q) use ($sale) {
-                    $q->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
-                      ->orWhere('notes', 'like', '%Venta #' . $sale->id . '%');
+                    $q->where('notes', 'like', '%Venta Masiva #'.$sale->id.'%')
+                        ->orWhere('notes', 'like', '%Venta #'.$sale->id.'%');
                 })
                 ->delete();
 
@@ -445,7 +449,7 @@ class SaleService
             $result = $this->deleteSale($sale->id, $companyId);
             $results[] = [
                 'id' => $sale->id,
-                'name' => 'Venta #' . $sale->id,
+                'name' => 'Venta #'.$sale->id,
                 'deleted' => $result['success'],
                 'reason' => $result['success'] ? null : $result['message'],
             ];
@@ -611,6 +615,7 @@ class SaleService
             collect($items)->sum(function ($item) {
                 $price = (float) ($item['price'] ?? 0);
                 $qty = (float) ($item['quantity'] ?? 0);
+
                 return $price * $qty;
             }),
             2
@@ -623,6 +628,7 @@ class SaleService
     public function calculateItemSubtotal(array $item): float
     {
         $finalPrice = $this->calculateItemFinalPrice($item);
+
         return round($finalPrice * (float) ($item['quantity'] ?? 0), 2);
     }
 
@@ -673,11 +679,19 @@ class SaleService
      */
     public function createSale(array $data, int $companyId): Sale
     {
-        $validated = \Illuminate\Support\Facades\Validator::make(
+        $validated = Validator::make(
             $data,
             $this->rulesForCreate(),
             $this->validationMessages()
         )->validate();
+
+        if ($user = Auth::user()) {
+            app(PlanEntitlementService::class)->assertCanCreateDocumentOnDate(
+                $user,
+                'sales',
+                Carbon::parse($validated['sale_date'])->format('Y-m-d')
+            );
+        }
 
         // 1. Verificar caja abierta
         $currentCashCount = CashCount::where('company_id', $companyId)
@@ -726,7 +740,7 @@ class SaleService
 
             // 5. Crear la venta
             $sale = Sale::create([
-                'sale_date' => $validated['sale_date'] . ' ' . $validated['sale_time'],
+                'sale_date' => $validated['sale_date'].' '.$validated['sale_time'],
                 'total_price' => $totalPrice,
                 'company_id' => $companyId,
                 'customer_id' => $validated['customer_id'],
@@ -768,8 +782,8 @@ class SaleService
                     'previous_debt' => $previousDebt,
                     'payment_amount' => $totalPrice,
                     'remaining_debt' => $previousDebt,
-                    'notes' => 'Pago automático registrado al crear la venta #' . $sale->id,
-                    'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                    'notes' => 'Pago automático registrado al crear la venta #'.$sale->id,
+                    'user_id' => Auth::id(),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -783,7 +797,7 @@ class SaleService
             $currentCashCount->movements()->create([
                 'type' => 'income',
                 'amount' => $totalPrice,
-                'description' => 'Venta #' . $sale->id,
+                'description' => 'Venta #'.$sale->id,
             ]);
 
             return $sale;
@@ -797,7 +811,7 @@ class SaleService
      */
     public function updateSale(int $saleId, array $data, int $companyId): Sale
     {
-        $validated = \Illuminate\Support\Facades\Validator::make(
+        $validated = Validator::make(
             $data,
             $this->rulesForUpdate(),
             $this->validationMessages()
@@ -839,11 +853,11 @@ class SaleService
             $autoPayments = DB::table('debt_payments')
                 ->where('company_id', $companyId)
                 ->where('customer_id', $oldCustomerId)
-                ->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
+                ->where('notes', 'like', '%Venta Masiva #'.$sale->id.'%')
                 ->orWhere(function ($q) use ($sale, $oldCustomerId, $companyId) {
                     $q->where('company_id', $companyId)
-                      ->where('customer_id', $oldCustomerId)
-                      ->where('notes', 'like', '%Venta #' . $sale->id . '%');
+                        ->where('customer_id', $oldCustomerId)
+                        ->where('notes', 'like', '%Venta #'.$sale->id.'%');
                 })
                 ->get();
 
@@ -867,8 +881,8 @@ class SaleService
                     ->where('company_id', $companyId)
                     ->where('customer_id', $oldCustomerId)
                     ->where(function ($q) use ($sale) {
-                        $q->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
-                          ->orWhere('notes', 'like', '%Venta #' . $sale->id . '%');
+                        $q->where('notes', 'like', '%Venta Masiva #'.$sale->id.'%')
+                            ->orWhere('notes', 'like', '%Venta #'.$sale->id.'%');
                     })
                     ->delete();
             }
@@ -876,7 +890,7 @@ class SaleService
             // ================================================================
             // 3. ACTUALIZAR LA VENTA
             // ================================================================
-            $sale->sale_date = $validated['sale_date'] . ' ' . $validated['sale_time'];
+            $sale->sale_date = $validated['sale_date'].' '.$validated['sale_time'];
             $sale->customer_id = $validated['customer_id'];
             $sale->total_price = $totalPrice;
             $sale->note = $validated['note'] ?? null;
@@ -939,7 +953,7 @@ class SaleService
             // ================================================================
             // 6. ACTUALIZAR MOVIMIENTO DE CAJA
             // ================================================================
-            \App\Models\CashMovement::where('description', 'Venta #' . $sale->id)
+            CashMovement::where('description', 'Venta #'.$sale->id)
                 ->whereHas('cashCount', fn ($q) => $q->where('company_id', $companyId))
                 ->update(['amount' => $totalPrice]);
 

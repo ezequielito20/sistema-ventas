@@ -2,19 +2,23 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\MergesValidationErrors;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\PlanEntitlementService;
 use App\Services\ProductService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class ProductForm extends Component
 {
+    use MergesValidationErrors;
     use WithFileUploads;
 
     public ?int $productId = null;
@@ -373,6 +377,7 @@ class ProductForm extends Component
 
         try {
             if ($this->productId === null) {
+                app(PlanEntitlementService::class)->assertCanCreate(Auth::user(), 'products');
                 $productService->create($validated, $companyId, $upload, $galleryImages);
 
                 session()->flash(
@@ -399,6 +404,10 @@ class ProductForm extends Component
             }
 
             return $this->redirectAfterSave();
+        } catch (ValidationException $e) {
+            $this->mergeValidationErrors($e);
+
+            return null;
         } catch (\Throwable $e) {
             $this->addError('code', 'Error al guardar: '.$e->getMessage());
 

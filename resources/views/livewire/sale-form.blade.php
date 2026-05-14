@@ -30,6 +30,8 @@
         </div>
     </div>
 
+    <x-plan-limit-alert />
+
     {{-- Cash count warning --}}
     @if (! $hasCashOpen && ! $isEdit)
         <div class="rounded-lg border border-rose-500/40 bg-rose-950/30 px-4 py-3">

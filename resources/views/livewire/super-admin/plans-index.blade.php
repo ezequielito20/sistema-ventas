@@ -135,7 +135,11 @@
                             </div>
                             <hr class="border-slate-700">
                             <p class="text-sm font-semibold text-slate-200">Módulos del plan</p>
-                            <p class="text-xs text-slate-500 mb-3">Marca los módulos a los que tendrán acceso las empresas con este plan. Opcional: cupo máximo de registros por módulo (vacío = sin límite en JSON).</p>
+                            <p class="text-xs text-slate-500 mb-3">
+                                Marcá los módulos a los que tendrán acceso las empresas con este plan.
+                                <span class="text-slate-400">Ventas</span> y <span class="text-slate-400">Compras</span>: el número es un <strong class="text-slate-300">máximo por día natural</strong> (se reinicia cada medianoche en la zona horaria del sistema); por ejemplo <strong class="text-slate-300">2</strong> = hasta dos ventas y dos compras <em>ese día</em>, y al día siguiente volvés a tener el mismo cupo.
+                                El resto de módulos con cupo: máximo total de registros (vacío = sin límite en JSON).
+                            </p>
                             <div class="max-h-48 overflow-y-auto space-y-2 rounded-lg border border-slate-700/50 p-3 sm:max-h-52">
                                 @foreach ($planFormModules as $mKey => $mDef)
                                     <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3 rounded-md bg-slate-900/40 px-2 py-2">
@@ -144,9 +148,20 @@
                                             {{ $mDef['label'] ?? $mKey }}
                                         </label>
                                         @if (!empty($mDef['limit_relation']))
-                                            <div class="flex items-center gap-2 sm:min-w-[8rem]">
-                                                <span class="text-xs text-slate-500 whitespace-nowrap">Máx. registros</span>
-                                                <input type="number" min="0" wire:model="moduleLimit.{{ $mKey }}" placeholder="—" class="w-full rounded border border-slate-600 bg-slate-950/60 py-1 px-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none" />
+                                            <div class="flex flex-col gap-0.5 sm:min-w-[10rem] sm:items-end">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-xs text-slate-500 whitespace-nowrap">
+                                                        @if (!empty($mDef['plan_limit_is_daily']))
+                                                            Máx. por día
+                                                        @else
+                                                            Máx. registros
+                                                        @endif
+                                                    </span>
+                                                    <input type="number" min="0" wire:model="moduleLimit.{{ $mKey }}" placeholder="—" class="w-full min-w-[4rem] rounded border border-slate-600 bg-slate-950/60 py-1 px-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none sm:max-w-[6rem]" />
+                                                </div>
+                                                @if (!empty($mDef['plan_limit_is_daily']))
+                                                    <span class="text-[0.65rem] leading-tight text-slate-600 sm:text-right">Por día calendario; al día siguiente el cupo se renueva.</span>
+                                                @endif
                                             </div>
                                         @endif
                                     </div>

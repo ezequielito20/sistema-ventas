@@ -2,15 +2,20 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\MergesValidationErrors;
 use App\Models\User;
+use App\Services\PlanEntitlementService;
 use App\Services\UserService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class UserForm extends Component
 {
+    use MergesValidationErrors;
+
     public ?int $userId = null;
 
     public string $name = '';
@@ -103,6 +108,7 @@ class UserForm extends Component
 
         try {
             if ($this->userId === null) {
+                app(PlanEntitlementService::class)->assertCanCreate(Auth::user(), 'users');
                 $userService->createUser($companyId, $validated);
 
                 session()->flash(
@@ -130,6 +136,10 @@ class UserForm extends Component
             }
 
             return $this->redirect(route('admin.users.index'));
+        } catch (ValidationException $e) {
+            $this->mergeValidationErrors($e);
+
+            return null;
         } catch (\Throwable $e) {
             $this->addError('name', 'Error al guardar el usuario: '.$e->getMessage());
 

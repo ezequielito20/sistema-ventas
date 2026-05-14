@@ -18,6 +18,7 @@
     <div class="ui-panel">
         <div class="ui-panel__body">
             <form wire:submit="saveAndBack" class="space-y-6">
+                <x-plan-limit-alert />
                 <div>
                     <label for="category-name" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
                         Nombre <span class="text-rose-400">*</span>

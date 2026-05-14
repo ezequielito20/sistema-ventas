@@ -134,12 +134,6 @@ class SettingsIndex extends Component
         $this->city_id = '';
     }
 
-    public function updatedPhone(mixed $value): void
-    {
-        $digits = preg_replace('/\D+/', '', (string) $value) ?? '';
-        $this->phone = strlen($digits) > 11 ? substr($digits, 0, 11) : $digits;
-    }
-
     public function save()
     {
         Gate::authorize('companies.update');

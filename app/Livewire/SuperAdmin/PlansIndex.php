@@ -79,7 +79,13 @@ class PlansIndex extends Component
 
         foreach (ModuleRegistry::modulesForPlanForm() as $key => $def) {
             $this->moduleEnabled[$key] = $plan === null ? false : in_array($key, $features, true);
-            $lim = $limits[$key] ?? null;
+            $lim = null;
+            if (! empty($def['plan_limit_is_daily'])) {
+                $dailyKey = $key === 'purchases' ? 'purchases_daily' : 'sales_daily';
+                $lim = $limits[$dailyKey] ?? $limits[$key] ?? null;
+            } else {
+                $lim = $limits[$key] ?? null;
+            }
             $this->moduleLimit[$key] = $lim === null || $lim === '' ? '' : (string) (int) $lim;
         }
     }
@@ -171,7 +177,14 @@ class PlansIndex extends Component
             if ($raw === '' || $raw === null) {
                 continue;
             }
-            $limits[$key] = max(0, (int) $raw);
+            $n = max(0, (int) $raw);
+            if (! empty($def['plan_limit_is_daily'])) {
+                $dailyKey = $key === 'purchases' ? 'purchases_daily' : 'sales_daily';
+                $limits[$dailyKey] = $n;
+
+                continue;
+            }
+            $limits[$key] = $n;
         }
 
         return $limits;

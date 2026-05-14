@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\MergesValidationErrors;
 use App\Models\CashCount;
 use App\Models\Customer;
 use App\Models\Product;
@@ -12,24 +13,33 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class SaleForm extends Component
 {
+    use MergesValidationErrors;
     use WithPagination;
 
     // ─── Modo (create / edit) ─────────────────────────────
     public ?int $saleId = null;
+
     public bool $isEdit = false;
+
     public string $headingTitle = 'Nueva venta';
+
     public string $headingSubtitle = 'Registre una nueva transacción de venta';
 
     // ─── Datos de la venta ────────────────────────────────
     public string $sale_date;
+
     public string $sale_time;
+
     public ?int $customer_id = null;
+
     public string $note = '';
+
     public bool $already_paid = false;
 
     // ─── Items (productos en la venta) ────────────────────
@@ -38,6 +48,7 @@ class SaleForm extends Component
 
     // ─── Descuento general ───────────────────────────────
     public string $general_discount_value = '0';
+
     public string $general_discount_type = 'fixed'; // 'fixed' | 'percentage'
 
     // ─── Escaneo por código ──────────────────────────────
@@ -45,14 +56,20 @@ class SaleForm extends Component
 
     // ─── Modal de búsqueda de productos ──────────────────
     public bool $show_product_modal = false;
+
     public string $modal_search = '';
 
     // ─── Modal crear cliente rápido ──────────────────────
     public bool $show_customer_modal = false;
+
     public string $new_customer_name = '';
+
     public string $new_customer_nit = '';
+
     public string $new_customer_phone = '';
+
     public string $new_customer_email = '';
+
     public string $new_customer_debt = '';
 
     // ─── Verificación de caja ─────────────────────────────
@@ -60,15 +77,21 @@ class SaleForm extends Component
 
     // ─── Ventas Masivas ─────────────────────────────────────
     public bool $showBulkModal = false;
+
     public string $bulkProductSearch = '';
+
     public ?int $bulkProductId = null;
+
     public string $bulkSaleDate = '';
+
     public string $bulkSaleTime = '';
+
     public string $bulkRawData = '';
 
     // Analysis results
     /** @var array<int, array> */
     public array $bulkResults = [];
+
     public bool $bulkIsAnalyzing = false;
 
     // ─── Refs para redirección ───────────────────────────
@@ -90,6 +113,7 @@ class SaleForm extends Component
             $this->headingTitle = 'Editar venta';
             $this->headingSubtitle = 'Modifique los datos y productos de la venta.';
             $this->loadSale();
+
             return;
         }
 
@@ -117,7 +141,7 @@ class SaleForm extends Component
                     'discount_value' => 0,
                     'discount_type' => 'fixed',
                 ];
-                $this->js("window.uiNotifications?.showToast?.('" . addslashes($product->name) . " se agregó automáticamente (único producto con stock)', {type:'info', title:'Atención', timeout:6000, theme:'futuristic'})");
+                $this->js("window.uiNotifications?.showToast?.('".addslashes($product->name)." se agregó automáticamente (único producto con stock)', {type:'info', title:'Atención', timeout:6000, theme:'futuristic'})");
             }
         }
 
@@ -178,12 +202,14 @@ class SaleForm extends Component
     public function getSubtotalProperty(): float
     {
         $service = app(SaleService::class);
+
         return $service->calculateSubtotal($this->items);
     }
 
     public function getTotalAmountProperty(): float
     {
         $service = app(SaleService::class);
+
         return $service->calculateTotalAmount(
             $this->items,
             (float) $this->general_discount_value,
@@ -197,6 +223,7 @@ class SaleForm extends Component
             return 0;
         }
         $service = app(SaleService::class);
+
         return $service->calculateItemSubtotal($this->items[$index]);
     }
 
@@ -263,6 +290,7 @@ class SaleForm extends Component
         // Sales require stock > 0
         if ($product->stock <= 0) {
             $this->js("window.uiNotifications?.showToast?.('Este producto no tiene stock disponible', {type:'error', title:'Atención', timeout:4800, theme:'futuristic'})");
+
             return;
         }
 
@@ -427,16 +455,16 @@ class SaleForm extends Component
 
         $this->show_customer_modal = false;
 
-        $this->toast('Cliente "' . $customer->name . '" creado y seleccionado.');
+        $this->toast('Cliente "'.$customer->name.'" creado y seleccionado.');
     }
 
     protected function toast(string $message, string $type = 'success'): void
     {
         $this->js(
             'if(window.uiNotifications?.showToast){window.uiNotifications.showToast('
-            . json_encode($message) . ', {type: ' . json_encode($type) . ', theme: "futuristic"});'
-            . '}else if(typeof Swal !== "undefined"){Swal.fire({icon:"' . $type . '",text:' . json_encode($message)
-            . ',timer:2500,showConfirmButton:false,toast:true,position:"top-end"});}'
+            .json_encode($message).', {type: '.json_encode($type).', theme: "futuristic"});'
+            .'}else if(typeof Swal !== "undefined"){Swal.fire({icon:"'.$type.'",text:'.json_encode($message)
+            .',timer:2500,showConfirmButton:false,toast:true,position:"top-end"});}'
         );
     }
 
@@ -489,13 +517,14 @@ class SaleForm extends Component
         if (trim($this->bulkRawData) === '') {
             $this->bulkResults = [];
             $this->js("window.uiNotifications?.showToast?.('Datos Vacíos', {type:'warning', title:'Ingrese datos para analizar', timeout:4800, theme:'futuristic'})");
+
             return;
         }
 
         $this->bulkIsAnalyzing = true;
         $this->bulkResults = [];
 
-        $lines = array_values(array_filter(array_map('trim', explode("\n", $this->bulkRawData)), fn($l) => $l !== ''));
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $this->bulkRawData)), fn ($l) => $l !== ''));
         $allCustomers = $this->all_customers;
 
         // Normalize helper: remove accents, lowercase, strip non-ASCII artifacts
@@ -513,6 +542,7 @@ class SaleForm extends Component
                     'error' => 'Formato inválido (falta cantidad)',
                     'status' => 'error',
                 ];
+
                 continue;
             }
 
@@ -529,7 +559,7 @@ class SaleForm extends Component
                 $quantity = (int) $qParts[0];
                 $remainingQuantity = (int) $qParts[1];
 
-                if (!is_nan($remainingQuantity)) {
+                if (! is_nan($remainingQuantity)) {
                     if ($remainingQuantity == 0) {
                         $isPaid = true; // Paid in full (0 remaining debt)
                     } elseif ($remainingQuantity < $quantity) {
@@ -549,6 +579,7 @@ class SaleForm extends Component
                     'error' => 'Cantidad no es un número',
                     'status' => 'error',
                 ];
+
                 continue;
             }
 
@@ -599,7 +630,7 @@ class SaleForm extends Component
      */
     public function resolveBulkMatch(int $index, int $customerId): void
     {
-        if (!isset($this->bulkResults[$index])) {
+        if (! isset($this->bulkResults[$index])) {
             return;
         }
 
@@ -632,7 +663,7 @@ class SaleForm extends Component
      */
     public function restoreBulkLine(int $index): void
     {
-        if (!isset($this->bulkResults[$index])) {
+        if (! isset($this->bulkResults[$index])) {
             return;
         }
 
@@ -644,7 +675,7 @@ class SaleForm extends Component
         // Re-determine original status
         if (isset($result['selectedCustomer'])) {
             $result['status'] = 'resolved';
-        } elseif (!empty($result['matches'])) {
+        } elseif (! empty($result['matches'])) {
             $result['status'] = 'ambiguous';
         } else {
             $result['status'] = 'not_found';
@@ -714,16 +745,19 @@ class SaleForm extends Component
 
         if (empty($this->items)) {
             $this->addError('items', 'Debe agregar al menos un producto a la venta.');
+
             return null;
         }
 
         if (! $this->customer_id) {
             $this->addError('customer_id', 'Debe seleccionar un cliente.');
+
             return null;
         }
 
         if (! $this->hasCashOpen && ! $this->isEdit) {
             $this->addError('sale_date', 'No hay una caja abierta. Debe abrir una caja antes de registrar ventas.');
+
             return null;
         }
 
@@ -732,6 +766,7 @@ class SaleForm extends Component
             $product = Product::find($item['product_id']);
             if ($product && (int) ($item['quantity'] ?? 0) > (int) $product->stock) {
                 $this->addError("items.{$index}.quantity", "Stock insuficiente para {$product->name}. Disponible: {$product->stock}");
+
                 return null;
             }
         }
@@ -788,18 +823,17 @@ class SaleForm extends Component
             }
 
             return $this->redirectAfterSave();
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            foreach ($e->validator->errors()->messages() as $key => $messages) {
-                foreach ($messages as $message) {
-                    $this->addError($key, $message);
-                }
-            }
+        } catch (ValidationException $e) {
+            $this->mergeValidationErrors($e);
+
             return null;
         } catch (\RuntimeException $e) {
             $this->addError('sale_date', $e->getMessage());
+
             return null;
         } catch (\Throwable $e) {
-            $this->addError('sale_date', 'Error al guardar la venta: ' . $e->getMessage());
+            $this->addError('sale_date', 'Error al guardar la venta: '.$e->getMessage());
+
             return null;
         }
     }

@@ -52,9 +52,19 @@
                         <input type="text" id="nit" wire:model="nit" class="{{ $inputBase }}" placeholder="Número de identificación">
                         @error('nit') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
                     </div>
-                    <div>
+                    <div class="min-w-0" x-data="{ phoneDigits: @entangle('phone').live }">
                         <label class="{{ $labelBase }}" for="phone">Teléfono</label>
-                        <input type="text" id="phone" wire:model.live="phone" maxlength="11" inputmode="numeric" autocomplete="tel" pattern="[0-9]*" class="{{ $inputBase }}" placeholder="04148965789">
+                        <input
+                            type="text"
+                            id="phone"
+                            maxlength="11"
+                            inputmode="numeric"
+                            autocomplete="tel"
+                            class="{{ $inputBase }}"
+                            placeholder="04148965789"
+                            x-model="phoneDigits"
+                            @input="phoneDigits = String(phoneDigits ?? '').replace(/\D/g, '').slice(0, 11)"
+                        >
                         @error('phone') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
                     </div>
                     <div>

@@ -2,15 +2,20 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\MergesValidationErrors;
 use App\Models\Category;
 use App\Services\CategoryService;
+use App\Services\PlanEntitlementService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class CategoryForm extends Component
 {
+    use MergesValidationErrors;
+
     public ?int $categoryId = null;
 
     public string $name = '';
@@ -91,6 +96,7 @@ class CategoryForm extends Component
 
         try {
             if ($this->categoryId === null) {
+                app(PlanEntitlementService::class)->assertCanCreate(Auth::user(), 'categories');
                 $categoryService->createCategory($companyId, $validated);
 
                 session()->flash(
@@ -119,6 +125,10 @@ class CategoryForm extends Component
             }
 
             return $this->redirect(route('admin.categories.index'));
+        } catch (ValidationException $e) {
+            $this->mergeValidationErrors($e);
+
+            return null;
         } catch (\Throwable $e) {
             $this->addError('name', 'Error al guardar la categoría: '.$e->getMessage());
 

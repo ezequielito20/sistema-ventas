@@ -2,22 +2,34 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\MergesValidationErrors;
 use App\Models\CashCount;
+use App\Services\PlanEntitlementService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class CashCountForm extends Component
 {
+    use MergesValidationErrors;
+
     public ?int $cashCountId = null;
 
     public string $openingDate;
+
     public string $openingTime;
+
     public string $initialAmount = '0.00';
+
     public string $observations = '';
+
     public string $finalAmount = '0.00';
+
     public bool $isEdit = false;
+
     public bool $showCloseModal = false;
 
     public string $currencySymbol = '$';
@@ -57,6 +69,7 @@ class CashCountForm extends Component
         if ($cashCountId) {
             Gate::authorize('cash-counts.edit');
             $this->loadCashCount($cashCountId);
+
             return;
         }
 
@@ -73,8 +86,8 @@ class CashCountForm extends Component
 
         $this->cashCountId = $id;
         $this->isEdit = true;
-        $this->openingDate = \Carbon\Carbon::parse($cashCount->opening_date)->format('Y-m-d');
-        $this->openingTime = \Carbon\Carbon::parse($cashCount->opening_date)->format('H:i');
+        $this->openingDate = Carbon::parse($cashCount->opening_date)->format('Y-m-d');
+        $this->openingTime = Carbon::parse($cashCount->opening_date)->format('H:i');
         $this->initialAmount = number_format((float) $cashCount->initial_amount, 2, '.', '');
         $this->observations = $cashCount->observations ?? '';
         $this->finalAmount = $cashCount->final_amount !== null
@@ -136,6 +149,8 @@ class CashCountForm extends Component
                     throw new \RuntimeException('Ya existe una caja abierta. Debe cerrarla antes de abrir una nueva.');
                 }
 
+                app(PlanEntitlementService::class)->assertCanCreate(Auth::user(), 'cash_counts');
+
                 CashCount::create([
                     'company_id' => $companyId,
                     'opening_date' => $openingDateTime,
@@ -143,16 +158,21 @@ class CashCountForm extends Component
                     'observations' => $this->observations,
                 ]);
 
-                $msg = 'Caja abierta correctamente con un monto inicial de ' . $this->currencySymbol . number_format((float) $this->initialAmount, 2);
+                $msg = 'Caja abierta correctamente con un monto inicial de '.$this->currencySymbol.number_format((float) $this->initialAmount, 2);
             }
 
             DB::commit();
 
             $this->toast($msg);
             $this->redirect(route('admin.cash-counts.index'), navigate: true);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            $this->mergeValidationErrors($e);
+            $msg = collect($e->errors())->flatten()->first() ?? 'No se pudo completar la acción.';
+            $this->toast($msg, 'error');
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->toast('Error: ' . $e->getMessage(), 'error');
+            $this->toast('Error: '.$e->getMessage(), 'error');
         }
     }
 
@@ -188,11 +208,11 @@ class CashCountForm extends Component
 
             DB::commit();
 
-            $this->toast('Caja cerrada correctamente. Monto final: ' . $this->currencySymbol . number_format((float) $this->finalAmount, 2));
+            $this->toast('Caja cerrada correctamente. Monto final: '.$this->currencySymbol.number_format((float) $this->finalAmount, 2));
             $this->redirect(route('admin.cash-counts.index'), navigate: true);
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->toast('Error al cerrar la caja: ' . $e->getMessage(), 'error');
+            $this->toast('Error al cerrar la caja: '.$e->getMessage(), 'error');
         }
     }
 

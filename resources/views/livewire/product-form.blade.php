@@ -23,6 +23,7 @@
     <div class="ui-panel">
         <div class="ui-panel__body">
             <form wire:submit="saveAndBack" class="space-y-0">
+                <x-plan-limit-alert />
                 {{-- Datos generales --}}
                 <div class="space-y-4">
                     <h3 class="text-sm font-semibold text-slate-200">Datos generales</h3>

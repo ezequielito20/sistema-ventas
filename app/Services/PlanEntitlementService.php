@@ -63,10 +63,31 @@ class PlanEntitlementService
     }
 
     /**
+     * Módulos cuyo cupo en el plan es por día natural (p. ej. ventas/compras), no tope total de filas.
+     *
+     * @return list<string>
+     */
+    public static function moduleKeysWithDailyPlanLimit(): array
+    {
+        $keys = [];
+        foreach (ModuleRegistry::modules() as $key => $def) {
+            if (! empty($def['plan_limit_is_daily'])) {
+                $keys[] = $key;
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
      * Límite de registros para un módulo (null = ilimitado).
      */
     public function moduleRecordLimit(Company $company, string $moduleKey): ?int
     {
+        if (in_array($moduleKey, self::moduleKeysWithDailyPlanLimit(), true)) {
+            return null;
+        }
+
         if (! $this->companyHasModule($company, $moduleKey)) {
             return 0;
         }
@@ -126,7 +147,7 @@ class PlanEntitlementService
     {
         if (! $user || ! $user->company) {
             throw ValidationException::withMessages([
-                '_' => 'No se pudo validar el plan de la empresa.',
+                'plan' => 'No se pudo validar el plan de la empresa.',
             ]);
         }
 
@@ -137,7 +158,7 @@ class PlanEntitlementService
         $company = $user->company;
         if (! $this->companyHasModule($company, $moduleKey)) {
             throw ValidationException::withMessages([
-                '_' => 'Tu plan no incluye este módulo.',
+                'plan' => 'Tu plan no incluye este módulo.',
             ]);
         }
 
@@ -155,7 +176,7 @@ class PlanEntitlementService
         $current = $this->currentCount($company, $moduleKey);
         if ($current >= $limit) {
             throw ValidationException::withMessages([
-                '_' => 'Has alcanzado el límite de registros de tu plan para este módulo ('.$limit.').',
+                'plan' => 'Has alcanzado el límite de registros de tu plan para este módulo ('.$limit.').',
             ]);
         }
     }
@@ -240,7 +261,7 @@ class PlanEntitlementService
                 : "Has alcanzado el límite de ventas diarias de tu plan ({$limit}).";
 
             throw ValidationException::withMessages([
-                '_' => $msg,
+                'plan' => $msg,
             ]);
         }
     }

@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\CashCount;
+use App\Models\CashMovement;
+use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
-use App\Models\Product;
-use App\Models\CashCount;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
 
 class PurchaseService
@@ -59,11 +60,18 @@ class PurchaseService
      * Registra una nueva compra con sus ítems, actualiza stock y registra movimiento de caja.
      *
      * @param  array<string, mixed>  $data
-     * @return Purchase
      */
     public function createPurchase(int $companyId, array $data): Purchase
     {
         $validated = Validator::make($data, $this->rulesForCreate(), $this->validationMessages())->validate();
+
+        if ($user = Auth::user()) {
+            app(PlanEntitlementService::class)->assertCanCreateDocumentOnDate(
+                $user,
+                'purchases',
+                Carbon::parse($validated['purchase_date'])->format('Y-m-d')
+            );
+        }
 
         // Verificar caja abierta
         $currentCashCount = CashCount::where('company_id', $companyId)
@@ -77,12 +85,12 @@ class PurchaseService
         $totalPrice = $this->calculateTotalAmount($validated['items'], $validated['general_discount_value'] ?? 0, $validated['general_discount_type'] ?? 'fixed');
 
         $paymentReceipt = str_replace('-', '', $validated['purchase_date'])
-            . count($validated['items'])
-            . str_pad((int) $totalPrice, 6, '0', STR_PAD_LEFT);
+            .count($validated['items'])
+            .str_pad((int) $totalPrice, 6, '0', STR_PAD_LEFT);
 
         return DB::transaction(function () use ($validated, $companyId, $currentCashCount, $totalPrice, $paymentReceipt) {
             $purchase = Purchase::create([
-                'purchase_date' => $validated['purchase_date'] . ' ' . $validated['purchase_time'],
+                'purchase_date' => $validated['purchase_date'].' '.$validated['purchase_time'],
                 'payment_receipt' => $paymentReceipt,
                 'total_price' => $totalPrice,
                 'company_id' => $companyId,
@@ -115,7 +123,7 @@ class PurchaseService
             $currentCashCount->movements()->create([
                 'type' => 'expense',
                 'amount' => $totalPrice,
-                'description' => 'Compra #' . $purchase->id,
+                'description' => 'Compra #'.$purchase->id,
             ]);
 
             return $purchase;
@@ -137,7 +145,7 @@ class PurchaseService
             $totalPrice = $this->calculateTotalAmount($validated['items'], $validated['general_discount_value'] ?? 0, $validated['general_discount_type'] ?? 'fixed');
 
             if (isset($validated['purchase_time'])) {
-                $purchase->purchase_date = $validated['purchase_date'] . ' ' . $validated['purchase_time'];
+                $purchase->purchase_date = $validated['purchase_date'].' '.$validated['purchase_time'];
             } else {
                 $purchase->purchase_date = $validated['purchase_date'];
             }
@@ -218,6 +226,7 @@ class PurchaseService
             collect($items)->sum(function ($item) {
                 $price = (float) ($item['price'] ?? 0);
                 $qty = (float) ($item['quantity'] ?? 0);
+
                 return $price * $qty;
             }),
             2
@@ -268,6 +277,7 @@ class PurchaseService
     public function calculateItemSubtotal(array $item): float
     {
         $finalPrice = $this->calculateItemFinalPrice($item);
+
         return round($finalPrice * (float) ($item['quantity'] ?? 0), 2);
     }
 
@@ -313,7 +323,7 @@ class PurchaseService
             }
 
             // Eliminar movimientos de caja asociados
-            \App\Models\CashMovement::where('description', 'Compra #' . $purchase->id)
+            CashMovement::where('description', 'Compra #'.$purchase->id)
                 ->whereHas('cashCount', fn ($q) => $q->where('company_id', $companyId))
                 ->delete();
 
@@ -347,7 +357,7 @@ class PurchaseService
             $result = $this->deletePurchase($companyId, $purchase->id);
             $results[] = [
                 'id' => $purchase->id,
-                'name' => 'Compra #' . $purchase->id,
+                'name' => 'Compra #'.$purchase->id,
                 'deleted' => $result['success'],
                 'reason' => $result['success'] ? null : $result['message'],
             ];

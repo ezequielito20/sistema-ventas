@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\MergesValidationErrors;
 use App\Models\Customer;
 use App\Services\CustomerPersistenceService;
 use App\Services\PlanEntitlementService;
@@ -13,6 +14,8 @@ use Livewire\Component;
 
 class CustomerForm extends Component
 {
+    use MergesValidationErrors;
+
     public ?int $customerId = null;
 
     public string $name = '';
@@ -78,7 +81,7 @@ class CustomerForm extends Component
         try {
             $persistence->validateAndUpdate($customer, $this->payloadForPersistence());
         } catch (ValidationException $e) {
-            $this->applyValidationException($e);
+            $this->mergeValidationErrors($e);
 
             return null;
         }
@@ -97,7 +100,7 @@ class CustomerForm extends Component
             app(PlanEntitlementService::class)->assertCanCreate(Auth::user(), 'customers');
             $customer = $persistence->validateAndCreate($this->payloadForPersistence());
         } catch (ValidationException $e) {
-            $this->applyValidationException($e);
+            $this->mergeValidationErrors($e);
 
             return null;
         }
@@ -141,15 +144,6 @@ class CustomerForm extends Component
         }
 
         return $data;
-    }
-
-    protected function applyValidationException(ValidationException $e): void
-    {
-        foreach ($e->validator->errors()->messages() as $key => $messages) {
-            foreach ($messages as $message) {
-                $this->addError($key, $message);
-            }
-        }
     }
 
     public function render(): View

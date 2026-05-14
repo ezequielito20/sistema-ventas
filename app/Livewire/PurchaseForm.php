@@ -2,20 +2,22 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\MergesValidationErrors;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
-use App\Services\ImageUrlService;
 use App\Services\PurchaseService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class PurchaseForm extends Component
 {
+    use MergesValidationErrors;
     use WithPagination;
 
     // ─── Modo (create / edit) ─────────────────────────────
@@ -23,6 +25,7 @@ class PurchaseForm extends Component
 
     // ─── Datos de la compra ───────────────────────────────
     public string $purchase_date;
+
     public string $purchase_time;
 
     // ─── Items (productos en la compra) ──────────────────
@@ -31,6 +34,7 @@ class PurchaseForm extends Component
 
     // ─── Descuento general ───────────────────────────────
     public string $general_discount_value = '0';
+
     public string $general_discount_type = 'fixed'; // 'fixed' | 'percentage'
 
     // ─── Escaneo por código ──────────────────────────────
@@ -38,6 +42,7 @@ class PurchaseForm extends Component
 
     // ─── Modal de búsqueda de productos ──────────────────
     public bool $show_product_modal = false;
+
     public string $modal_search = '';
 
     // ─── Refs para redirección ───────────────────────────
@@ -51,6 +56,7 @@ class PurchaseForm extends Component
         if ($this->purchaseId !== null) {
             Gate::authorize('purchases.edit');
             $this->loadPurchase();
+
             return;
         }
 
@@ -74,7 +80,7 @@ class PurchaseForm extends Component
                     'discount_value' => 0,
                     'discount_type' => 'fixed',
                 ];
-                $this->js("window.uiNotifications?.showToast?.('" . addslashes($product->name) . " se agregó automáticamente (único producto en inventario)', {type:'info', title:'Atención', timeout:6000, theme:'futuristic'})");
+                $this->js("window.uiNotifications?.showToast?.('".addslashes($product->name)." se agregó automáticamente (único producto en inventario)', {type:'info', title:'Atención', timeout:6000, theme:'futuristic'})");
             }
         }
     }
@@ -121,12 +127,14 @@ class PurchaseForm extends Component
     public function getSubtotalProperty(): float
     {
         $service = app(PurchaseService::class);
+
         return $service->calculateSubtotal($this->items);
     }
 
     public function getTotalAmountProperty(): float
     {
         $service = app(PurchaseService::class);
+
         return $service->calculateTotalAmount(
             $this->items,
             (float) $this->general_discount_value,
@@ -140,6 +148,7 @@ class PurchaseForm extends Component
             return 0;
         }
         $service = app(PurchaseService::class);
+
         return $service->calculateItemSubtotal($this->items[$index]);
     }
 
@@ -353,6 +362,7 @@ class PurchaseForm extends Component
 
         if (empty($this->items)) {
             $this->addError('items', 'Debe agregar al menos un producto a la compra.');
+
             return null;
         }
 
@@ -404,18 +414,17 @@ class PurchaseForm extends Component
             }
 
             return $this->redirectAfterSave();
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            foreach ($e->validator->errors()->messages() as $key => $messages) {
-                foreach ($messages as $message) {
-                    $this->addError($key, $message);
-                }
-            }
+        } catch (ValidationException $e) {
+            $this->mergeValidationErrors($e);
+
             return null;
         } catch (\RuntimeException $e) {
             $this->addError('purchase_date', $e->getMessage());
+
             return null;
         } catch (\Throwable $e) {
-            $this->addError('purchase_date', 'Error al guardar la compra: ' . $e->getMessage());
+            $this->addError('purchase_date', 'Error al guardar la compra: '.$e->getMessage());
+
             return null;
         }
     }
