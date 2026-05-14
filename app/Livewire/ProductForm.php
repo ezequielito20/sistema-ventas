@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Services\PlanEntitlementService;
 use App\Services\ProductService;
+use App\Support\ProductListingReturnUrl;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -213,7 +214,10 @@ class ProductForm extends Component
 
     protected function captureProductsReferrer(): void
     {
-        $fromQuery = $this->sanitizeInternalReturnUrl(request()->query('return'));
+        $returnQuery = request()->query('return');
+        $fromQuery = is_string($returnQuery)
+            ? ProductListingReturnUrl::sanitizeInternalFullUrl($returnQuery)
+            : null;
         if ($fromQuery !== null) {
             session(['products_referrer' => $fromQuery]);
 
@@ -226,7 +230,7 @@ class ProductForm extends Component
         }
 
         if ($this->productId === null && ! str_contains($referrerUrl, 'products/create')) {
-            $safe = $this->sanitizeInternalReturnUrl($referrerUrl);
+            $safe = ProductListingReturnUrl::sanitizeInternalFullUrl($referrerUrl);
             if ($safe !== null) {
                 session(['products_referrer' => $safe]);
             }
@@ -235,41 +239,11 @@ class ProductForm extends Component
         }
 
         if ($this->productId !== null && ! str_contains($referrerUrl, 'products/edit')) {
-            $safe = $this->sanitizeInternalReturnUrl($referrerUrl);
+            $safe = ProductListingReturnUrl::sanitizeInternalFullUrl($referrerUrl);
             if ($safe !== null) {
                 session(['products_referrer' => $safe]);
             }
         }
-    }
-
-    /**
-     * Solo URLs internas de la app (path relativo o mismo host que APP_URL).
-     */
-    protected function sanitizeInternalReturnUrl(mixed $value): ?string
-    {
-        if (! is_string($value) || trim($value) === '') {
-            return null;
-        }
-
-        $value = trim($value);
-
-        if (str_starts_with($value, '/') && ! str_starts_with($value, '//')) {
-            return $value;
-        }
-
-        $appUrl = rtrim((string) config('app.url'), '/');
-        if ($appUrl !== '' && str_starts_with($value, $appUrl.'/')) {
-            return $value;
-        }
-
-        $appHost = $appUrl !== '' ? parse_url($appUrl, PHP_URL_HOST) : null;
-        $candidateHost = parse_url($value, PHP_URL_HOST);
-
-        if ($appHost && $candidateHost && strcasecmp((string) $candidateHost, (string) $appHost) === 0) {
-            return $value;
-        }
-
-        return null;
     }
 
     protected function rules(): array
@@ -418,10 +392,13 @@ class ProductForm extends Component
     protected function redirectAfterSave(): mixed
     {
         $referrerUrl = session('products_referrer');
-        if ($referrerUrl) {
-            session()->forget('products_referrer');
+        session()->forget('products_referrer');
 
-            return $this->redirect($referrerUrl);
+        if (is_string($referrerUrl) && $referrerUrl !== '') {
+            $safe = ProductListingReturnUrl::sanitizeInternalFullUrl($referrerUrl);
+            if ($safe !== null) {
+                return $this->redirect($safe);
+            }
         }
 
         return $this->redirect(route('admin.products.index'));

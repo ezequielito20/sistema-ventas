@@ -23,7 +23,7 @@
 @endpush
 
 @section('content')
-    @php($productFormReturnUrl = url()->full())
+    @php($productFormReturnUrl = \App\Support\ProductListingReturnUrl::current(request()))
     <!-- Background Pattern -->
     <div class="page-background"></div>
 

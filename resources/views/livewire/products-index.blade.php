@@ -1,4 +1,4 @@
-@php($productFormReturnUrl = url()->full())
+@php($productFormReturnUrl = \App\Support\ProductListingReturnUrl::current(request()))
 <div
     class="space-y-6"
     wire:key="products-index-root"
