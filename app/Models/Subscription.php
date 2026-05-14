@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Subscription extends Model
 {
@@ -28,6 +28,8 @@ class Subscription extends Model
         'auto_renew',
         'cancelled_at',
         'cancellation_reason',
+        'billing_mode',
+        'custom_recurring_amount',
     ];
 
     protected $casts = [
@@ -40,6 +42,8 @@ class Subscription extends Model
         'discount_amount' => 'decimal:2',
         'auto_renew' => 'boolean',
         'cancelled_at' => 'datetime',
+        'custom_recurring_amount' => 'decimal:2',
+        'billing_mode' => 'string',
     ];
 
     public function company(): BelongsTo

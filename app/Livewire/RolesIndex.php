@@ -4,9 +4,11 @@ namespace App\Livewire;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\PlanEntitlementService;
 use App\Services\RoleService;
 use App\Support\PermissionFriendlyNames;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -216,9 +218,11 @@ class RolesIndex extends Component
             }
 
             $ids = array_map('intval', $this->selectedPermissionIds);
+            $allowed = app(PlanEntitlementService::class)->allowedPermissionIdsForTenantCompany((int) Auth::user()->company_id);
             $valid = [];
             if ($ids !== []) {
                 $valid = Permission::query()->whereIn('id', $ids)->pluck('id')->map(fn ($v) => (int) $v)->all();
+                $valid = array_values(array_intersect($valid, $allowed));
             }
 
             $role->syncPermissions($valid);
@@ -235,7 +239,7 @@ class RolesIndex extends Component
 
     public function toggleModulePermissions(string $module): void
     {
-        $grouped = PermissionFriendlyNames::grouped();
+        $grouped = $this->permissionsGroupedForTenant();
         $group = $grouped->get($module);
         if (! $group) {
             return;
@@ -254,7 +258,8 @@ class RolesIndex extends Component
     public function selectAllPermissions(bool $select): void
     {
         if ($select) {
-            $this->selectedPermissionIds = Permission::query()->pluck('id')->map(fn ($id) => (int) $id)->all();
+            $allowed = app(PlanEntitlementService::class)->allowedPermissionIdsForTenantCompany((int) Auth::user()->company_id);
+            $this->selectedPermissionIds = Permission::query()->whereIn('id', $allowed)->pluck('id')->map(fn ($id) => (int) $id)->all();
         } else {
             $this->selectedPermissionIds = [];
         }
@@ -449,6 +454,16 @@ class RolesIndex extends Component
         }
     }
 
+    protected function permissionsGroupedForTenant(): Collection
+    {
+        $companyId = (int) Auth::user()->company_id;
+        $allowed = app(PlanEntitlementService::class)->allowedPermissionIdsForTenantCompany($companyId);
+
+        return PermissionFriendlyNames::grouped()
+            ->map(fn ($group) => $group->filter(fn ($p) => in_array((int) $p->id, $allowed, true)))
+            ->filter(fn ($group) => $group->isNotEmpty());
+    }
+
     protected function rolesQuery()
     {
         $companyId = Auth::user()->company_id;
@@ -500,7 +515,7 @@ class RolesIndex extends Component
             'roles' => $roles,
             'stats' => $stats,
             'permFlags' => $permFlags,
-            'permissionsGrouped' => PermissionFriendlyNames::grouped(),
+            'permissionsGrouped' => $this->permissionsGroupedForTenant(),
             'currentPageRoleIds' => $currentPageRoleIds,
             'allCurrentPageSelected' => $allCurrentPageSelected,
         ]);

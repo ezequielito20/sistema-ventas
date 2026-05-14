@@ -7,7 +7,6 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class SubscriptionService
 {
@@ -29,6 +28,8 @@ class SubscriptionService
             'next_billing_date' => $nextBilling,
             'grace_period_end' => $gracePeriodEnd,
             'amount' => $plan->base_price,
+            'billing_mode' => 'from_plan',
+            'custom_recurring_amount' => null,
             'auto_renew' => true,
         ]);
     }
@@ -38,23 +39,29 @@ class SubscriptionService
      */
     public function calculateAmount(Company $company, Plan $plan): float
     {
-        $amount = (float) $plan->base_price;
+        $subscription = $company->subscription;
 
-        $userCount = $company->users()->count();
-        if ($plan->max_users && $userCount > $plan->max_users) {
-            $extraUsers = $userCount - $plan->max_users;
-            $amount += $extraUsers * (float) $plan->price_per_user;
-        }
+        if ($subscription && $subscription->billing_mode === 'custom' && $subscription->custom_recurring_amount !== null) {
+            $amount = (float) $subscription->custom_recurring_amount;
+        } else {
+            $amount = (float) $plan->base_price;
 
-        if ($plan->price_per_transaction > 0) {
-            $transactionCount = $company->sales()->count();
-            if ($plan->max_transactions && $transactionCount > $plan->max_transactions) {
-                $extraTransactions = $transactionCount - $plan->max_transactions;
-                $amount += $extraTransactions * (float) $plan->price_per_transaction;
+            $userCount = $company->users()->count();
+            if ($plan->max_users && $userCount > $plan->max_users) {
+                $extraUsers = $userCount - $plan->max_users;
+                $amount += $extraUsers * (float) $plan->price_per_user;
+            }
+
+            if ($plan->price_per_transaction > 0) {
+                $transactionCount = $company->sales()->count();
+                if ($plan->max_transactions && $transactionCount > $plan->max_transactions) {
+                    $extraTransactions = $transactionCount - $plan->max_transactions;
+                    $amount += $extraTransactions * (float) $plan->price_per_transaction;
+                }
             }
         }
 
-        $discount = (float) ($company->subscription->discount_amount ?? 0);
+        $discount = (float) ($subscription?->discount_amount ?? 0);
         $amount = max(0, $amount - $discount);
 
         return round($amount, 2);

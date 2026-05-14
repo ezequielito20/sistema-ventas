@@ -3,16 +3,17 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, HasRoles, Notifiable;
 
     protected static function booted(): void
     {
@@ -25,7 +26,6 @@ class User extends Authenticatable
             }
         });
     }
-
 
     /**
      * The attributes that are mass assignable.
@@ -73,6 +73,24 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->is_super_admin === true || $this->hasRole('super-admin');
+    }
+
+    /**
+     * Consola Super Admin (planes, empresas, pagos): super admin y empresa plataforma.
+     */
+    public function canAccessPlatformConsole(): bool
+    {
+        if (! $this->isSuperAdmin()) {
+            return false;
+        }
+
+        $platformCompanyId = config('saas.platform_company_id');
+
+        if ($platformCompanyId === null || $platformCompanyId === 0) {
+            return true;
+        }
+
+        return (int) $this->company_id === (int) $platformCompanyId;
     }
 
     public function scopeSuperAdmins($query)

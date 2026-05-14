@@ -541,7 +541,7 @@
                 <nav class="sidebar-navigation mt-6 px-3">
                     <div class="space-y-1">
 
-                        @if (Auth::user() && Auth::user()->isSuperAdmin())
+                        @if (Auth::user() && Auth::user()->canAccessPlatformConsole())
                             <div x-data="{ open: {{ request()->is('super-admin*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" type="button"
                                     class="app-sidebar-parent-btn group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
@@ -578,13 +578,16 @@
                             </div>
                         @endif
 
+                        @if ($planMod('companies'))
                         <!-- Config empresa -->
                         <a href="{{ route('admin.company.edit') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.company.edit') ? 'is-active' : '' }}">
                             <i class="fas fa-cog mr-3 text-lg"></i>
                             Config empresa
                         </a>
+                        @endif
 
+                        @if ($planMod('roles') || $planMod('permissions'))
                         <!-- Roles y Permisos -->
                         <div
                             x-data="{ open: {{ request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'true' : 'false' }} }">
@@ -613,27 +616,34 @@
                                 </a>
                             </div>
                         </div>
+                        @endif
 
+                        @if ($planMod('users'))
                         <!-- Usuarios -->
                         <a href="{{ route('admin.users.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.users.*') ? 'is-active' : '' }}">
                             <i class="fas fa-users mr-3 text-lg"></i>
                             Usuarios
                         </a>
+                        @endif
 
+                        @if ($planMod('categories'))
                         <!-- Categorías -->
                         <a href="{{ route('admin.categories.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.categories.*') ? 'is-active' : '' }}">
                             <i class="fas fa-tags mr-3 text-lg"></i>
                             Categorías
                         </a>
+                        @endif
 
+                        @if ($planMod('products'))
                         <!-- Productos -->
                         <a href="{{ route('admin.products.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.products.*') ? 'is-active' : '' }}">
                             <i class="fas fa-box mr-3 text-lg"></i>
                             Productos
                         </a>
+                        @endif
 
                         <!-- Proveedores -->
                         {{-- <a href="{{ route('admin.suppliers.index') }}"
@@ -642,35 +652,43 @@
                             Proveedores
                         </a> --}}
 
+                        @if ($planMod('purchases'))
                         <!-- Compras (listado moderno v2) -->
                         <a href="{{ route('admin.purchases.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ str_starts_with((string) request()->route()?->getName(), 'admin.purchases') ? 'is-active' : '' }}">
                             <i class="fas fa-shopping-bag mr-3 text-lg"></i>
                             Compras
                         </a>
+                        @endif
 
+                        @if ($planMod('sales'))
                         <!-- Ventas -->
                         <a href="{{ route('admin.sales.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.sales.*') ? 'is-active' : '' }}">
                             <i class="fas fa-chart-line mr-3 text-lg"></i>
                             Ventas
                         </a>
+                        @endif
 
+                        @if ($planMod('customers'))
                         <!-- Clientes -->
                         <a href="{{ route('admin.customers.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.customers.*') ? 'is-active' : '' }}">
                             <i class="fas fa-user-friends mr-3 text-lg"></i>
                             Clientes
                         </a>
+                        @endif
 
+                        @if ($planMod('cash_counts'))
                         <!-- Arqueo de Caja -->
                         <a href="{{ route('admin.cash-counts.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.cash-counts.*') ? 'is-active' : '' }}">
                             <i class="fas fa-cash-register mr-3 text-lg"></i>
                             Arqueo de Caja
                         </a>
+                        @endif
 
-                        @if(Auth::user()?->isSuperAdmin())
+                        @if ($planMod('scanner'))
                         <!-- Escaner de Precios -->
                         <a href="{{ route('admin.scanner.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.scanner.*') ? 'is-active' : '' }}">
@@ -683,7 +701,7 @@
                         @php
                             $userCompany = Auth::user()?->company;
                         @endphp
-                        @if($userCompany && $userCompany->slug && $userCompany->catalog_is_public)
+                        @if($planMod('catalog') && $userCompany && $userCompany->slug && $userCompany->catalog_is_public)
                             <a href="{{ route('catalog.index', $userCompany->slug) }}" target="_blank"
                                 class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 hover:from-purple-500/20 hover:to-pink-500/20">
                                 <i class="fas fa-store-alt mr-3 text-lg text-purple-400"></i>

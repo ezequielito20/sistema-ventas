@@ -12,8 +12,8 @@ class EnsureUserIsSuperAdmin
     {
         $user = Auth::user();
 
-        if (!$user || !$user->isSuperAdmin()) {
-            abort(403, 'Acceso denegado. Solo el administrador del sistema puede acceder a esta sección.');
+        if (! $user || ! $user->canAccessPlatformConsole()) {
+            abort(403, 'Acceso denegado. Solo operadores de la plataforma pueden acceder a esta sección.');
         }
 
         return $next($request);

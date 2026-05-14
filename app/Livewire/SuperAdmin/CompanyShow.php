@@ -65,7 +65,9 @@ class CompanyShow extends Component
 
     public string $editGracePeriodEnd = '';
 
-    public string $editAmount = '';
+    public string $editBillingMode = 'from_plan';
+
+    public string $editCustomRecurringAmount = '0.00';
 
     public string $editDiscountAmount = '0';
 
@@ -88,7 +90,7 @@ class CompanyShow extends Component
 
     public function mount(int $companyId): void
     {
-        if (! auth()->user() || ! auth()->user()->isSuperAdmin()) {
+        if (! auth()->user() || ! auth()->user()->canAccessPlatformConsole()) {
             abort(403);
         }
 
@@ -135,7 +137,10 @@ class CompanyShow extends Component
         $this->editBillingDay = $sub?->billing_day ?? 1;
         $this->editNextBillingDate = $sub?->next_billing_date?->format('Y-m-d') ?? '';
         $this->editGracePeriodEnd = $sub?->grace_period_end?->format('Y-m-d') ?? '';
-        $this->editAmount = $sub ? number_format((float) $sub->amount, 2, '.', '') : '0.00';
+        $this->editBillingMode = $sub?->billing_mode ?? 'from_plan';
+        $this->editCustomRecurringAmount = $sub && $sub->custom_recurring_amount !== null
+            ? number_format((float) $sub->custom_recurring_amount, 2, '.', '')
+            : number_format((float) ($sub?->plan?->base_price ?? 0), 2, '.', '');
         $this->editDiscountAmount = $sub ? number_format((float) ($sub->discount_amount ?? 0), 2, '.', '') : '0.00';
         $this->editDiscountReason = $sub?->discount_reason ?? '';
         $this->editAutoRenew = $sub?->auto_renew ?? true;
@@ -160,25 +165,46 @@ class CompanyShow extends Component
             'editBillingDay' => 'required|integer|min:1|max:28',
             'editNextBillingDate' => 'required|date',
             'editGracePeriodEnd' => 'nullable|date|after_or_equal:editNextBillingDate',
-            'editAmount' => 'required|numeric|min:0',
+            'editBillingMode' => 'required|in:from_plan,custom',
+            'editCustomRecurringAmount' => 'required_if:editBillingMode,custom|nullable|numeric|min:0',
             'editDiscountAmount' => 'nullable|numeric|min:0',
             'editDiscountReason' => 'nullable|string|max:500',
             'editAutoRenew' => 'boolean',
         ]);
 
-        $amount = (float) $this->editAmount;
         $discount = (float) ($this->editDiscountAmount ?: 0);
+        $subService = app(SubscriptionService::class);
 
         $this->subscription->update([
             'started_at' => $this->editStartedAt,
             'billing_day' => (int) $this->editBillingDay,
             'next_billing_date' => $this->editNextBillingDate,
             'grace_period_end' => $this->editGracePeriodEnd ?: null,
-            'amount' => max(0, $amount - $discount),
             'discount_amount' => $discount,
             'discount_reason' => $this->editDiscountReason ?: null,
             'auto_renew' => $this->editAutoRenew,
         ]);
+
+        if ($this->editBillingMode === 'custom') {
+            $custom = (float) $this->editCustomRecurringAmount;
+            $this->subscription->update([
+                'billing_mode' => 'custom',
+                'custom_recurring_amount' => $custom,
+                'amount' => max(0, round($custom - $discount, 2)),
+            ]);
+        } else {
+            $this->subscription->update([
+                'billing_mode' => 'from_plan',
+                'custom_recurring_amount' => null,
+            ]);
+            $this->subscription->refresh();
+            $plan = $this->subscription->plan;
+            if ($plan) {
+                $this->subscription->update([
+                    'amount' => $subService->calculateAmount($this->company, $plan),
+                ]);
+            }
+        }
 
         $this->closeEditSubscriptionModal();
         $this->loadCompany();

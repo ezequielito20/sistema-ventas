@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\ImageUrlService;
+use App\Services\PlanEntitlementService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -163,6 +164,16 @@ class Company extends Model
         return $this->hasMany(Customer::class);
     }
 
+    public function suppliers(): HasMany
+    {
+        return $this->hasMany(Supplier::class);
+    }
+
+    public function cashCounts(): HasMany
+    {
+        return $this->hasMany(CashCount::class);
+    }
+
     public function countryModel(): BelongsTo
     {
         return $this->belongsTo(Country::class, 'country', 'id');
@@ -208,14 +219,7 @@ class Company extends Model
 
     public function canUseFeature(string $feature): bool
     {
-        $plan = $this->plan;
-        if (! $plan || ! $plan->is_active) {
-            return false;
-        }
-
-        $features = $plan->features ?? [];
-
-        return in_array($feature, $features, true);
+        return app(PlanEntitlementService::class)->companyHasModule($this, $feature);
     }
 
     public function getPlanLimit(string $key): ?int
@@ -226,8 +230,18 @@ class Company extends Model
         }
 
         $limits = $plan->limits ?? [];
+        if (array_key_exists($key, $limits)) {
+            $v = $limits[$key];
 
-        return $limits[$key] ?? $plan->{$key} ?? null;
+            return $v === null ? null : (int) $v;
+        }
+
+        $legacy = ['max_users', 'max_transactions', 'max_products', 'max_customers'];
+        if (in_array($key, $legacy, true) && isset($plan->{$key})) {
+            return $plan->{$key} === null ? null : (int) $plan->{$key};
+        }
+
+        return null;
     }
 
     public function getLogoUrlAttribute()

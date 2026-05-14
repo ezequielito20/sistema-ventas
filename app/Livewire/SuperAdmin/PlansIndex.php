@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin;
 
 use App\Models\Plan;
+use App\Support\ModuleRegistry;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -38,19 +39,11 @@ class PlansIndex extends Component
 
     public bool $isActive = true;
 
-    public bool $hasSales = false;
+    /** @var array<string, bool> */
+    public array $moduleEnabled = [];
 
-    public bool $hasPurchases = false;
-
-    public bool $hasReports = false;
-
-    public bool $hasCustomers = false;
-
-    public bool $hasProducts = false;
-
-    public bool $hasCategories = false;
-
-    public bool $hasCashCounts = false;
+    /** @var array<string, string> límite por módulo (vacío = sin tope explícito en JSON) */
+    public array $moduleLimit = [];
 
     public bool $showDeleteModal = false;
 
@@ -60,7 +53,7 @@ class PlansIndex extends Component
 
     public function mount(): void
     {
-        if (!auth()->user() || !auth()->user()->isSuperAdmin()) {
+        if (! auth()->user() || ! auth()->user()->canAccessPlatformConsole()) {
             abort(403);
         }
     }
@@ -74,13 +67,28 @@ class PlansIndex extends Component
         $options = json_encode(['type' => $uiType, 'title' => $title, 'timeout' => $timeout, 'theme' => 'futuristic'], JSON_THROW_ON_ERROR);
         $msg = json_encode($message, JSON_THROW_ON_ERROR);
         $this->js('if (window.uiNotifications && typeof window.uiNotifications.showToast === "function") {'
-            . 'window.uiNotifications.showToast(' . $msg . ', ' . $options . ');}');
+            .'window.uiNotifications.showToast('.$msg.', '.$options.');}');
+    }
+
+    protected function syncModuleStateFromPlan(?Plan $plan): void
+    {
+        $this->moduleEnabled = [];
+        $this->moduleLimit = [];
+        $features = $plan?->features ?? [];
+        $limits = $plan?->limits ?? [];
+
+        foreach (ModuleRegistry::modulesForPlanForm() as $key => $def) {
+            $this->moduleEnabled[$key] = $plan === null ? false : in_array($key, $features, true);
+            $lim = $limits[$key] ?? null;
+            $this->moduleLimit[$key] = $lim === null || $lim === '' ? '' : (string) (int) $lim;
+        }
     }
 
     public function openCreateModal(): void
     {
         $this->resetForm();
         $this->isEditing = false;
+        $this->syncModuleStateFromPlan(null);
         $this->showFormModal = true;
     }
 
@@ -100,16 +108,7 @@ class PlansIndex extends Component
         $this->maxProducts = $plan->max_products;
         $this->maxCustomers = $plan->max_customers;
         $this->isActive = $plan->is_active;
-
-        $features = $plan->features ?? [];
-        $this->hasSales = in_array('sales', $features);
-        $this->hasPurchases = in_array('purchases', $features);
-        $this->hasReports = in_array('reports', $features);
-        $this->hasCustomers = in_array('customers', $features);
-        $this->hasProducts = in_array('products', $features);
-        $this->hasCategories = in_array('categories', $features);
-        $this->hasCashCounts = in_array('cash_counts', $features);
-
+        $this->syncModuleStateFromPlan($plan);
         $this->showFormModal = true;
     }
 
@@ -133,26 +132,49 @@ class PlansIndex extends Component
         $this->maxProducts = null;
         $this->maxCustomers = null;
         $this->isActive = true;
-        $this->hasSales = false;
-        $this->hasPurchases = false;
-        $this->hasReports = false;
-        $this->hasCustomers = false;
-        $this->hasProducts = false;
-        $this->hasCategories = false;
-        $this->hasCashCounts = false;
+        $this->moduleEnabled = [];
+        $this->moduleLimit = [];
     }
 
+    /**
+     * @return list<string>
+     */
     protected function buildFeatures(): array
     {
-        $features = [];
-        if ($this->hasSales) $features[] = 'sales';
-        if ($this->hasPurchases) $features[] = 'purchases';
-        if ($this->hasReports) $features[] = 'reports';
-        if ($this->hasCustomers) $features[] = 'customers';
-        if ($this->hasProducts) $features[] = 'products';
-        if ($this->hasCategories) $features[] = 'categories';
-        if ($this->hasCashCounts) $features[] = 'cash_counts';
-        return $features;
+        $out = [];
+        foreach (ModuleRegistry::modulesForPlanForm() as $key => $_def) {
+            if (! empty($this->moduleEnabled[$key])) {
+                $out[] = $key;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return array<string, int|null>
+     */
+    protected function buildLimitsArray(): array
+    {
+        $limits = [
+            'max_users' => $this->maxUsers,
+            'max_transactions' => $this->maxTransactions,
+            'max_products' => $this->maxProducts,
+            'max_customers' => $this->maxCustomers,
+        ];
+
+        foreach (ModuleRegistry::modulesForPlanForm() as $key => $def) {
+            if (empty($def['limit_relation'])) {
+                continue;
+            }
+            $raw = $this->moduleLimit[$key] ?? '';
+            if ($raw === '' || $raw === null) {
+                continue;
+            }
+            $limits[$key] = max(0, (int) $raw);
+        }
+
+        return $limits;
     }
 
     public function save(): void
@@ -164,15 +186,27 @@ class PlansIndex extends Component
             'pricePerUser' => ['nullable', 'numeric', 'min:0'],
             'pricePerTransaction' => ['nullable', 'numeric', 'min:0'],
             'isActive' => ['boolean'],
+            'moduleEnabled' => ['array'],
+            'moduleLimit' => ['array'],
         ];
 
         if ($this->isEditing) {
-            $rules['slug'] = ['required', 'string', 'max:255', 'unique:plans,slug,' . $this->editingPlanId];
+            $rules['slug'] = ['required', 'string', 'max:255', 'unique:plans,slug,'.$this->editingPlanId];
         } else {
             $rules['slug'] = ['required', 'string', 'max:255', 'unique:plans,slug'];
         }
 
+        foreach (ModuleRegistry::modulesForPlanForm() as $key => $def) {
+            if (empty($def['limit_relation'])) {
+                continue;
+            }
+            $rules['moduleLimit.'.$key] = ['nullable', 'integer', 'min:0'];
+        }
+
         $this->validate($rules);
+
+        $limits = $this->buildLimitsArray();
+        $features = $this->buildFeatures();
 
         $data = [
             'name' => $this->name,
@@ -181,13 +215,8 @@ class PlansIndex extends Component
             'base_price' => $this->basePrice,
             'price_per_user' => $this->pricePerUser,
             'price_per_transaction' => $this->pricePerTransaction,
-            'limits' => json_encode([
-                'max_users' => $this->maxUsers,
-                'max_transactions' => $this->maxTransactions,
-                'max_products' => $this->maxProducts,
-                'max_customers' => $this->maxCustomers,
-            ]),
-            'features' => json_encode($this->buildFeatures()),
+            'limits' => $limits,
+            'features' => $features,
             'max_users' => $this->maxUsers,
             'max_transactions' => $this->maxTransactions,
             'max_products' => $this->maxProducts,
@@ -205,15 +234,16 @@ class PlansIndex extends Component
             }
             $this->closeFormModal();
         } catch (\Throwable $e) {
-            $this->toast('Error al guardar el plan: ' . $e->getMessage(), 'error');
+            $this->toast('Error al guardar el plan: '.$e->getMessage(), 'error');
         }
     }
 
     public function openDeleteModal(int $id): void
     {
         $plan = Plan::find($id);
-        if (!$plan) {
+        if (! $plan) {
             $this->toast('Plan no encontrado.', 'error');
+
             return;
         }
         $this->deleteTargetId = $id;
@@ -230,7 +260,9 @@ class PlansIndex extends Component
 
     public function confirmDelete(): void
     {
-        if ($this->deleteTargetId === null) return;
+        if ($this->deleteTargetId === null) {
+            return;
+        }
 
         try {
             $plan = Plan::findOrFail($this->deleteTargetId);
@@ -239,6 +271,7 @@ class PlansIndex extends Component
             if ($plan->subscriptions()->count() > 0) {
                 $this->toast("El plan \"{$name}\" tiene suscripciones activas. Desactivalo en lugar de eliminarlo.", 'error');
                 $this->closeDeleteModal();
+
                 return;
             }
 
@@ -247,7 +280,7 @@ class PlansIndex extends Component
             $this->toast("Plan \"{$name}\" eliminado correctamente.", 'success');
         } catch (\Throwable $e) {
             $this->closeDeleteModal();
-            $this->toast('Error al eliminar: ' . $e->getMessage(), 'error');
+            $this->toast('Error al eliminar: '.$e->getMessage(), 'error');
         }
     }
 
@@ -258,8 +291,8 @@ class PlansIndex extends Component
         if ($this->search !== '') {
             $s = $this->search;
             $query->where(function ($q) use ($s) {
-                $q->where('name', 'ILIKE', '%' . $s . '%')
-                    ->orWhere('slug', 'ILIKE', '%' . $s . '%');
+                $q->where('name', 'ILIKE', '%'.$s.'%')
+                    ->orWhere('slug', 'ILIKE', '%'.$s.'%');
             });
         }
 
@@ -267,6 +300,7 @@ class PlansIndex extends Component
 
         return view('livewire.super-admin.plans-index', [
             'plans' => $plans,
+            'planFormModules' => ModuleRegistry::modulesForPlanForm(),
         ]);
     }
 }

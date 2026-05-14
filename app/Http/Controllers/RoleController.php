@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Role;
+use App\Services\PlanEntitlementService;
 use App\Services\RoleService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -417,6 +418,8 @@ class RoleController extends Controller
             $validPermissions = [];
             if (! empty($permissions)) {
                 $validPermissions = Permission::whereIn('id', $permissions)->pluck('id')->toArray();
+                $allowed = app(PlanEntitlementService::class)->allowedPermissionIdsForTenantCompany((int) $this->company->id);
+                $validPermissions = array_values(array_intersect(array_map('intval', $validPermissions), $allowed));
             }
 
             // Verificar que el rol puede ser modificado

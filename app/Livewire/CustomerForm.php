@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Customer;
 use App\Services\CustomerPersistenceService;
+use App\Services\PlanEntitlementService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -93,6 +94,7 @@ class CustomerForm extends Component
         Gate::authorize('customers.create');
 
         try {
+            app(PlanEntitlementService::class)->assertCanCreate(Auth::user(), 'customers');
             $customer = $persistence->validateAndCreate($this->payloadForPersistence());
         } catch (ValidationException $e) {
             $this->applyValidationException($e);

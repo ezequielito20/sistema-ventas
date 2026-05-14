@@ -4,12 +4,7 @@ namespace App\Livewire\SuperAdmin;
 
 use App\Models\Company;
 use App\Models\Plan;
-use App\Models\Subscription;
-use App\Models\SubscriptionPayment;
-use App\Services\SubscriptionService;
-use App\Services\UsageCollectorService;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -56,17 +51,40 @@ class CompaniesIndex extends Component
 
     public function mount(): void
     {
-        if (!auth()->user() || !auth()->user()->isSuperAdmin()) {
+        if (! auth()->user() || ! auth()->user()->canAccessPlatformConsole()) {
             abort(403);
         }
     }
 
-    public function updatingSearch(): void { $this->resetPage(); }
-    public function updatingStatusFilter(): void { $this->resetPage(); }
-    public function updatingPlanFilter(): void { $this->resetPage(); }
-    public function updatingDateFrom(): void { $this->resetPage(); }
-    public function updatingDateTo(): void { $this->resetPage(); }
-    public function updatingPerPage(): void { $this->resetPage(); }
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPlanFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
 
     public function clearFilters(): void
     {
@@ -92,7 +110,7 @@ class CompaniesIndex extends Component
         $options = json_encode(['type' => $uiType, 'title' => $title, 'timeout' => $timeout, 'theme' => 'futuristic'], JSON_THROW_ON_ERROR);
         $msg = json_encode($message, JSON_THROW_ON_ERROR);
         $this->js('if (window.uiNotifications && typeof window.uiNotifications.showToast === "function") {'
-            . 'window.uiNotifications.showToast(' . $msg . ', ' . $options . ');}');
+            .'window.uiNotifications.showToast('.$msg.', '.$options.');}');
     }
 
     public function openDetailModal(int $id): void
@@ -139,8 +157,9 @@ class CompaniesIndex extends Component
     public function openDeleteModal(int $id): void
     {
         $company = Company::find($id);
-        if (!$company) {
+        if (! $company) {
             $this->toast('Empresa no encontrada.', 'error');
+
             return;
         }
         $this->deleteTargetId = $id;
@@ -157,7 +176,9 @@ class CompaniesIndex extends Component
 
     public function confirmDelete(): void
     {
-        if ($this->deleteTargetId === null) return;
+        if ($this->deleteTargetId === null) {
+            return;
+        }
 
         try {
             $company = Company::findOrFail($this->deleteTargetId);
@@ -167,21 +188,23 @@ class CompaniesIndex extends Component
             $this->toast("Empresa \"{$name}\" eliminada correctamente.", 'success');
         } catch (\Throwable $e) {
             $this->closeDeleteModal();
-            $this->toast('Error al eliminar la empresa: ' . $e->getMessage(), 'error');
+            $this->toast('Error al eliminar la empresa: '.$e->getMessage(), 'error');
         }
     }
 
     public function toggleSelectionMode(): void
     {
-        $this->selectionMode = !$this->selectionMode;
-        if (!$this->selectionMode) {
+        $this->selectionMode = ! $this->selectionMode;
+        if (! $this->selectionMode) {
             $this->selectedIds = [];
         }
     }
 
     public function toggleSelection(int $id): void
     {
-        if (!$this->selectionMode) return;
+        if (! $this->selectionMode) {
+            return;
+        }
         if (in_array($id, $this->selectedIds, true)) {
             $this->selectedIds = array_values(array_diff($this->selectedIds, [$id]));
         } else {
@@ -191,7 +214,9 @@ class CompaniesIndex extends Component
 
     public function toggleSelectAll(): void
     {
-        if (!$this->selectionMode) return;
+        if (! $this->selectionMode) {
+            return;
+        }
         $pageCompanies = $this->query()
             ->withCount(['users', 'customers', 'products', 'sales', 'purchases'])
             ->paginate($this->perPage);
@@ -216,6 +241,7 @@ class CompaniesIndex extends Component
     {
         if ($this->selectedIds === []) {
             $this->toast('Selecciona al menos una empresa.', 'warning');
+
             return;
         }
         $this->showBulkDeleteModal = true;
@@ -228,7 +254,9 @@ class CompaniesIndex extends Component
 
     public function confirmBulkDelete(): void
     {
-        if ($this->selectedIds === []) return;
+        if ($this->selectedIds === []) {
+            return;
+        }
 
         $deleted = 0;
         $skipped = 0;
@@ -237,6 +265,7 @@ class CompaniesIndex extends Component
                 $company = Company::withCount(['users', 'customers', 'products', 'sales', 'purchases'])->findOrFail($id);
                 if ($company->users_count > 0 || $company->customers_count > 0 || $company->products_count > 0 || $company->sales_count > 0 || $company->purchases_count > 0) {
                     $skipped++;
+
                     continue;
                 }
                 $company->delete();
@@ -266,9 +295,9 @@ class CompaniesIndex extends Component
         if ($this->search !== '') {
             $s = $this->search;
             $query->where(function ($q) use ($s) {
-                $q->where('name', 'ILIKE', '%' . $s . '%')
-                    ->orWhere('nit', 'ILIKE', '%' . $s . '%')
-                    ->orWhere('email', 'ILIKE', '%' . $s . '%');
+                $q->where('name', 'ILIKE', '%'.$s.'%')
+                    ->orWhere('nit', 'ILIKE', '%'.$s.'%')
+                    ->orWhere('email', 'ILIKE', '%'.$s.'%');
             });
         }
 

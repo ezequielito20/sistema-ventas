@@ -1055,11 +1055,21 @@
                                 <input type="date" wire:model="editGracePeriodEnd" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none" />
                                 @error('editGracePeriodEnd') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
                             </div>
-                            <div>
-                                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Monto mensual (USD)</label>
-                                <input type="number" step="0.01" wire:model="editAmount" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none" />
-                                @error('editAmount') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                            <div class="sm:col-span-2">
+                                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Facturación</label>
+                                <select wire:model.live="editBillingMode" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none">
+                                    <option value="from_plan">Calcular según plan (precio lista + extras − descuento)</option>
+                                    <option value="custom">Monto mensual acordado (fijo)</option>
+                                </select>
+                                @error('editBillingMode') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
                             </div>
+                            @if ($editBillingMode === 'custom')
+                            <div class="sm:col-span-2">
+                                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Monto mensual acordado (USD, antes del descuento)</label>
+                                <input type="number" step="0.01" wire:model="editCustomRecurringAmount" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none" />
+                                @error('editCustomRecurringAmount') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                            </div>
+                            @endif
                             <div>
                                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Descuento (USD)</label>
                                 <input type="number" step="0.01" wire:model="editDiscountAmount" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none" />

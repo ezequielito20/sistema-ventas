@@ -12,7 +12,7 @@ use Livewire\WithPagination;
 
 class PaymentsIndex extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public string $search = '';
 
@@ -47,17 +47,40 @@ class PaymentsIndex extends Component
 
     public function mount(): void
     {
-        if (!auth()->user() || !auth()->user()->isSuperAdmin()) {
+        if (! auth()->user() || ! auth()->user()->canAccessPlatformConsole()) {
             abort(403);
         }
     }
 
-    public function updatingSearch(): void { $this->resetPage(); }
-    public function updatingStatusFilter(): void { $this->resetPage(); }
-    public function updatingCompanyFilter(): void { $this->resetPage(); }
-    public function updatingDateFrom(): void { $this->resetPage(); }
-    public function updatingDateTo(): void { $this->resetPage(); }
-    public function updatingPerPage(): void { $this->resetPage(); }
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingCompanyFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
 
     public function clearFilters(): void
     {
@@ -78,7 +101,7 @@ class PaymentsIndex extends Component
         $options = json_encode(['type' => $uiType, 'title' => $title, 'timeout' => $timeout, 'theme' => 'futuristic'], JSON_THROW_ON_ERROR);
         $msg = json_encode($message, JSON_THROW_ON_ERROR);
         $this->js('if (window.uiNotifications && typeof window.uiNotifications.showToast === "function") {'
-            . 'window.uiNotifications.showToast(' . $msg . ', ' . $options . ');}');
+            .'window.uiNotifications.showToast('.$msg.', '.$options.');}');
     }
 
     public function openPaymentModal(int $paymentId): void
@@ -98,7 +121,9 @@ class PaymentsIndex extends Component
 
     public function markAsPaid(): void
     {
-        if (!$this->selectedPaymentId) return;
+        if (! $this->selectedPaymentId) {
+            return;
+        }
 
         $this->validate([
             'receiptFile' => 'nullable|image|mimes:jpeg,png,jpg,pdf|max:4096',
@@ -118,7 +143,7 @@ class PaymentsIndex extends Component
             $this->closePaymentModal();
             $this->toast('Pago registrado correctamente.', 'success');
         } catch (\Throwable $e) {
-            $this->toast('Error al registrar pago: ' . $e->getMessage(), 'error');
+            $this->toast('Error al registrar pago: '.$e->getMessage(), 'error');
         }
     }
 
@@ -129,7 +154,7 @@ class PaymentsIndex extends Component
             app(PaymentService::class)->cancelPayment($payment);
             $this->toast('Pago cancelado.', 'success');
         } catch (\Throwable $e) {
-            $this->toast('Error al cancelar: ' . $e->getMessage(), 'error');
+            $this->toast('Error al cancelar: '.$e->getMessage(), 'error');
         }
     }
 
@@ -141,8 +166,8 @@ class PaymentsIndex extends Component
         if ($this->search !== '') {
             $s = $this->search;
             $query->whereHas('company', function ($q) use ($s) {
-                $q->where('name', 'ILIKE', '%' . $s . '%')
-                    ->orWhere('nit', 'ILIKE', '%' . $s . '%');
+                $q->where('name', 'ILIKE', '%'.$s.'%')
+                    ->orWhere('nit', 'ILIKE', '%'.$s.'%');
             });
         }
 

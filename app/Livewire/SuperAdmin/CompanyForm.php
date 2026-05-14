@@ -4,11 +4,14 @@ namespace App\Livewire\SuperAdmin;
 
 use App\Models\Company;
 use App\Models\Plan;
+use App\Models\Role;
+use App\Models\User;
 use App\Services\SubscriptionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
+use Spatie\Permission\Models\Permission;
 
 class CompanyForm extends Component
 {
@@ -32,7 +35,7 @@ class CompanyForm extends Component
 
     public function mount(): void
     {
-        if (!auth()->user() || !auth()->user()->isSuperAdmin()) {
+        if (! auth()->user() || ! auth()->user()->canAccessPlatformConsole()) {
             abort(403);
         }
 
@@ -82,7 +85,7 @@ class CompanyForm extends Component
         $options = json_encode(['type' => $uiType, 'title' => $title, 'timeout' => $timeout, 'theme' => 'futuristic'], JSON_THROW_ON_ERROR);
         $msg = json_encode($message, JSON_THROW_ON_ERROR);
         $this->js('if (window.uiNotifications && typeof window.uiNotifications.showToast === "function") {'
-            . 'window.uiNotifications.showToast(' . $msg . ', ' . $options . ');}');
+            .'window.uiNotifications.showToast('.$msg.', '.$options.');}');
     }
 
     public function save(): void
@@ -110,20 +113,20 @@ class CompanyForm extends Component
                 'billing_day' => $this->billingDay,
             ]);
 
-            $adminRole = \App\Models\Role::create([
+            $adminRole = Role::create([
                 'name' => 'administrador',
                 'guard_name' => 'web',
                 'company_id' => $company->id,
             ]);
 
-            $allPermissions = \Spatie\Permission\Models\Permission::where('name', 'not like', 'system.%')
+            $allPermissions = Permission::where('name', 'not like', 'system.%')
                 ->where('name', 'not like', 'plans.%')
                 ->where('name', 'not like', 'subscriptions.%')
                 ->where('name', '!=', 'super-admin.access')
                 ->get();
             $adminRole->syncPermissions($allPermissions);
 
-            $user = \App\Models\User::create([
+            $user = User::create([
                 'name' => $this->adminName,
                 'email' => $this->adminEmail,
                 'password' => Hash::make($this->adminPassword),
@@ -144,7 +147,7 @@ class CompanyForm extends Component
             $this->redirect(route('super-admin.companies.index'));
         } catch (\Throwable $e) {
             DB::rollBack();
-            $this->toast('Error al crear la empresa: ' . $e->getMessage(), 'error');
+            $this->toast('Error al crear la empresa: '.$e->getMessage(), 'error');
         }
     }
 
@@ -173,20 +176,20 @@ class CompanyForm extends Component
                 'billing_day' => $this->billingDay,
             ]);
 
-            $adminRole = \App\Models\Role::create([
+            $adminRole = Role::create([
                 'name' => 'administrador',
                 'guard_name' => 'web',
                 'company_id' => $company->id,
             ]);
 
-            $allPermissions = \Spatie\Permission\Models\Permission::where('name', 'not like', 'system.%')
+            $allPermissions = Permission::where('name', 'not like', 'system.%')
                 ->where('name', 'not like', 'plans.%')
                 ->where('name', 'not like', 'subscriptions.%')
                 ->where('name', '!=', 'super-admin.access')
                 ->get();
             $adminRole->syncPermissions($allPermissions);
 
-            $user = \App\Models\User::create([
+            $user = User::create([
                 'name' => $this->adminName,
                 'email' => $this->adminEmail,
                 'password' => Hash::make($this->adminPassword),
@@ -209,7 +212,7 @@ class CompanyForm extends Component
             $this->toast("Empresa \"{$company->name}\" creada. Podés crear otra.", 'success');
         } catch (\Throwable $e) {
             DB::rollBack();
-            $this->toast('Error al crear la empresa: ' . $e->getMessage(), 'error');
+            $this->toast('Error al crear la empresa: '.$e->getMessage(), 'error');
         }
     }
 

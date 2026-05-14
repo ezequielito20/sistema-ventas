@@ -47,7 +47,9 @@
                                 <td class="text-sm font-medium text-emerald-400">$ {{ number_format($plan->base_price, 2) }}</td>
                                 <td class="text-sm text-slate-300">$ {{ number_format($plan->price_per_user, 2) }}</td>
                                 <td class="text-sm text-slate-300">$ {{ number_format($plan->price_per_transaction, 2) }}</td>
-                                <td class="text-sm text-slate-300">
+                                <td class="text-sm text-slate-300 max-w-xs">
+                                    @php $lf = $plan->features ?? []; @endphp
+                                    @if (count($lf)) <span class="ui-badge ui-badge-info text-xs mb-1 mr-1">{{ count($lf) }} mód.</span> @endif
                                     @if ($plan->max_users) <span class="ui-badge ui-badge-info text-xs">Usuarios: {{ $plan->max_users }}</span> @endif
                                     @if ($plan->max_transactions) <span class="ui-badge ui-badge-info text-xs">Trans: {{ $plan->max_transactions }}</span> @endif
                                 </td>
@@ -132,15 +134,24 @@
                                 <div><label class="mb-1 block text-xs text-slate-400">Máx clientes</label><input type="number" wire:model="maxCustomers" min="0" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none" /></div>
                             </div>
                             <hr class="border-slate-700">
-                            <p class="text-sm font-semibold text-slate-200">Módulos habilitados</p>
-                            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                                <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" wire:model="hasSales" class="rounded border-slate-500 bg-slate-900 text-cyan-500" /> Ventas</label>
-                                <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" wire:model="hasPurchases" class="rounded border-slate-500 bg-slate-900 text-cyan-500" /> Compras</label>
-                                <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" wire:model="hasReports" class="rounded border-slate-500 bg-slate-900 text-cyan-500" /> Reportes</label>
-                                <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" wire:model="hasCustomers" class="rounded border-slate-500 bg-slate-900 text-cyan-500" /> Clientes</label>
-                                <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" wire:model="hasProducts" class="rounded border-slate-500 bg-slate-900 text-cyan-500" /> Productos</label>
-                                <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" wire:model="hasCategories" class="rounded border-slate-500 bg-slate-900 text-cyan-500" /> Categorías</label>
-                                <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" wire:model="hasCashCounts" class="rounded border-slate-500 bg-slate-900 text-cyan-500" /> Arqueo Caja</label>
+                            <p class="text-sm font-semibold text-slate-200">Módulos del plan</p>
+                            <p class="text-xs text-slate-500 mb-3">Marca los módulos a los que tendrán acceso las empresas con este plan. Opcional: cupo máximo de registros por módulo (vacío = sin límite en JSON).</p>
+                            <div class="max-h-64 overflow-y-auto space-y-2 rounded-lg border border-slate-700/50 p-3">
+                                @foreach ($planFormModules as $mKey => $mDef)
+                                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3 rounded-md bg-slate-900/40 px-2 py-2">
+                                        <label class="flex items-center gap-2 text-sm text-slate-300 shrink-0">
+                                            <input type="checkbox" wire:model.live="moduleEnabled.{{ $mKey }}" class="rounded border-slate-500 bg-slate-900 text-cyan-500" />
+                                            {{ $mDef['label'] ?? $mKey }}
+                                        </label>
+                                        @if (!empty($mDef['limit_relation']))
+                                            <div class="flex items-center gap-2 sm:min-w-[8rem]">
+                                                <span class="text-xs text-slate-500 whitespace-nowrap">Máx. registros</span>
+                                                <input type="number" min="0" wire:model="moduleLimit.{{ $mKey }}" placeholder="—" class="w-full rounded border border-slate-600 bg-slate-950/60 py-1 px-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none" />
+                                            </div>
+                                        @endif
+                                    </div>
+                                    @error('moduleLimit.'.$mKey) <p class="text-xs text-rose-400">{{ $message }}</p> @enderror
+                                @endforeach
                             </div>
                             <div class="pt-2">
                                 <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" wire:model="isActive" class="rounded border-slate-500 bg-slate-900 text-cyan-500" /> Plan activo</label>
