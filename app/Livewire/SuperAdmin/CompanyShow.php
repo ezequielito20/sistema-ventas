@@ -333,7 +333,7 @@ class CompanyShow extends Component
 
     public function changePlan(): void
     {
-        if (! $this->subscription || ! $this->newPlanId) {
+        if (! $this->newPlanId) {
             $this->toast('Selecciona un plan válido.', 'warning');
 
             return;
@@ -341,10 +341,20 @@ class CompanyShow extends Component
 
         try {
             $plan = Plan::findOrFail($this->newPlanId);
-            app(SubscriptionService::class)->changePlan($this->subscription, $plan);
+            $subService = app(SubscriptionService::class);
+
+            if (! $this->subscription) {
+                $subService->createForCompany($this->company, $plan, 1);
+                $this->company->update(['subscription_status' => 'active']);
+                $message = 'Plan asignado correctamente. Se creó la suscripción para esta empresa.';
+            } else {
+                $subService->changePlan($this->subscription, $plan);
+                $message = 'Plan actualizado correctamente.';
+            }
+
             $this->closeChangePlanModal();
             $this->loadCompany();
-            $this->toast('Plan actualizado correctamente.', 'success');
+            $this->toast($message, 'success');
         } catch (\Throwable $e) {
             $this->toast('Error al cambiar plan: '.$e->getMessage(), 'error');
         }

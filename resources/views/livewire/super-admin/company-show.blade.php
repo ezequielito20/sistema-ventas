@@ -30,7 +30,11 @@
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button type="button" wire:click="openChangePlanModal" class="ui-btn ui-btn-ghost text-sm">
-                        <i class="fas fa-exchange-alt mr-1.5"></i> Cambiar plan
+                        @if ($subscription)
+                            <i class="fas fa-exchange-alt mr-1.5"></i> Cambiar plan
+                        @else
+                            <i class="fas fa-plus-circle mr-1.5"></i> Asignar plan
+                        @endif
                     </button>
                     @if ($subscription && $subscription->isSuspended())
                         <button type="button" wire:click="activate" class="ui-btn ui-btn-success text-sm">
@@ -999,13 +1003,26 @@
             <div class="relative w-full max-w-md mx-4" @click.stop>
                 <div class="ui-panel">
                     <div class="ui-panel__header">
-                        <h3 class="ui-panel__title">Cambiar plan</h3>
+                        <h3 class="ui-panel__title">
+                            {{ $subscription ? 'Cambiar plan' : 'Asignar plan' }}
+                        </h3>
                     </div>
                     <div class="ui-panel__body space-y-4">
-                        <p class="text-sm text-slate-300">Plan actual: <strong class="text-white">{{ $subscription?->plan?->name }}</strong></p>
+                        <p class="text-sm text-slate-300">
+                            Plan actual:
+                            <strong class="text-white">{{ $subscription?->plan?->name ?? 'Sin plan' }}</strong>
+                        </p>
                         <div>
-                            <label class="mb-1 block text-xs text-slate-400">Nuevo plan</label>
-                            <select wire:model="newPlanId" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2.5 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none">
+                            <label class="mb-1 block text-xs text-slate-400">
+                                {{ $subscription ? 'Nuevo plan' : 'Plan' }}
+                            </label>
+                            <select
+                                wire:model.live="newPlanId"
+                                class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2.5 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none"
+                            >
+                                @if (! $subscription)
+                                    <option value="">— Selecciona un plan —</option>
+                                @endif
                                 @foreach ($plans as $plan)
                                     <option value="{{ $plan->id }}">{{ $plan->name }} — ${{ number_format($plan->base_price, 2) }}</option>
                                 @endforeach
@@ -1013,7 +1030,9 @@
                         </div>
                         <div class="flex justify-end gap-2">
                             <button type="button" wire:click="closeChangePlanModal" class="ui-btn ui-btn-ghost">Cancelar</button>
-                            <button type="button" wire:click="changePlan" class="ui-btn ui-btn-primary">Cambiar plan</button>
+                            <button type="button" wire:click="changePlan" class="ui-btn ui-btn-primary">
+                                {{ $subscription ? 'Cambiar plan' : 'Asignar plan' }}
+                            </button>
                         </div>
                     </div>
                 </div>
