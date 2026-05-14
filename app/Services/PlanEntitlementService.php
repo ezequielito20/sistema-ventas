@@ -337,7 +337,7 @@ class PlanEntitlementService
     /**
      * Resumen de módulos, límites y uso para la pantalla «Mi plan» (tenant).
      *
-     * @return array{subscription: Subscription|null, plan: Plan|null, plan_is_active: bool, today: string, rows: list<array<string, mixed>>}
+     * @return array{subscription: Subscription|null, plan: Plan|null, plan_is_active: bool, today: string, rows: list<array{module_key: string, label: string, effective_access: bool, limit_label: string, usage_label: string}>}
      */
     public function tenantPlanOverviewForCompany(Company $company): array
     {
@@ -348,8 +348,11 @@ class PlanEntitlementService
 
         $rows = [];
         foreach (ModuleRegistry::modulesForPlanForm() as $moduleKey => $def) {
+            if (! $plan || ! $this->planContractIncludesModule($plan, $moduleKey)) {
+                continue;
+            }
+
             $label = (string) ($def['label'] ?? $moduleKey);
-            $contractIncluded = $plan ? $this->planContractIncludesModule($plan, $moduleKey) : false;
             $effectiveAccess = $this->companyHasModule($company, $moduleKey);
 
             $limitLabel = '—';
@@ -400,7 +403,6 @@ class PlanEntitlementService
             $rows[] = [
                 'module_key' => $moduleKey,
                 'label' => $label,
-                'contract_included' => $contractIncluded,
                 'effective_access' => $effectiveAccess,
                 'limit_label' => $limitLabel,
                 'usage_label' => $usageLabel,

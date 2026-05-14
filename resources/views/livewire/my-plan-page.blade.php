@@ -99,44 +99,42 @@
             <div class="ui-panel__header">
                 <h2 class="text-base font-semibold text-slate-100">Módulos, límites y uso</h2>
                 <p class="ui-panel__subtitle mt-1">
-                    «Contrato» = incluido en el plan. «Acceso» = puedes usarlo ahora (plan activo y módulo habilitado).
+                    Solo se listan los módulos incluidos en tu plan. «Acceso» indica si puedes usarlos ahora (plan activo).
                 </p>
             </div>
             <div class="ui-panel__body overflow-x-auto p-0 sm:p-0">
-                <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
-                    <thead class="bg-slate-900/60">
-                        <tr>
-                            <th class="px-4 py-3 font-semibold text-slate-300">Módulo</th>
-                            <th class="px-4 py-3 font-semibold text-slate-300">Contrato</th>
-                            <th class="px-4 py-3 font-semibold text-slate-300">Acceso</th>
-                            <th class="px-4 py-3 font-semibold text-slate-300">Límite</th>
-                            <th class="px-4 py-3 font-semibold text-slate-300">Uso / nota</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800">
-                        @foreach ($overview['rows'] as $row)
-                            <tr class="bg-slate-950/30 hover:bg-slate-900/40">
-                                <td class="px-4 py-3 font-medium text-slate-200">{{ $row['label'] }}</td>
-                                <td class="px-4 py-3">
-                                    @if ($row['contract_included'])
-                                        <span class="text-emerald-400">Sí</span>
-                                    @else
-                                        <span class="text-slate-500">No</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3">
-                                    @if ($row['effective_access'])
-                                        <span class="text-emerald-400">Sí</span>
-                                    @else
-                                        <span class="text-slate-500">No</span>
-                                    @endif
-                                </td>
-                                <td class="max-w-xs px-4 py-3 text-slate-300">{{ $row['limit_label'] }}</td>
-                                <td class="max-w-xs px-4 py-3 text-slate-400">{{ $row['usage_label'] }}</td>
+                @if (count($overview['rows']) === 0)
+                    <div class="px-4 py-8 text-center text-sm text-slate-400">
+                        No hay módulos configurados en tu plan para mostrar aquí.
+                    </div>
+                @else
+                    <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
+                        <thead class="bg-slate-900/60">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold text-slate-300">Módulo</th>
+                                <th class="px-4 py-3 font-semibold text-slate-300">Acceso</th>
+                                <th class="px-4 py-3 font-semibold text-slate-300">Límite</th>
+                                <th class="px-4 py-3 font-semibold text-slate-300">Uso / nota</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            @foreach ($overview['rows'] as $row)
+                                <tr class="bg-slate-950/30 hover:bg-slate-900/40">
+                                    <td class="px-4 py-3 font-medium text-slate-200">{{ $row['label'] }}</td>
+                                    <td class="px-4 py-3">
+                                        @if ($row['effective_access'])
+                                            <span class="text-emerald-400">Sí</span>
+                                        @else
+                                            <span class="text-slate-500">No</span>
+                                        @endif
+                                    </td>
+                                    <td class="max-w-xs px-4 py-3 text-slate-300">{{ $row['limit_label'] }}</td>
+                                    <td class="max-w-xs px-4 py-3 text-slate-400">{{ $row['usage_label'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
             </div>
         </div>
     @endif
