@@ -79,19 +79,19 @@
         </div>
     </div>
 
-    {{-- Modal Formulario Crear/Editar --}}
+    {{-- Modal Formulario Crear/Editar (altura acotada, scroll interno, hueco bajo el topbar) --}}
     @if ($showFormModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto" x-data x-cloak x-show="true" x-transition>
+        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain px-4 pb-8 pt-16 sm:pt-20" x-data x-cloak x-show="true" x-transition>
             <div class="fixed inset-0 bg-black/60" wire:click="closeFormModal"></div>
-            <div class="relative w-full max-w-2xl mx-4 my-8" @click.stop>
-                <div class="ui-panel">
-                    <div class="ui-panel__header flex items-center justify-between">
+            <div class="relative z-10 mt-0 flex w-full max-w-2xl max-h-[min(90vh,calc(100vh-5rem))] flex-col" @click.stop>
+                <div class="ui-panel flex min-h-0 max-h-full flex-col overflow-hidden shadow-2xl">
+                    <div class="ui-panel__header flex shrink-0 items-center justify-between">
                         <h3 class="ui-panel__title">{{ $isEditing ? 'Editar plan' : 'Nuevo plan' }}</h3>
                         <button type="button" wire:click="closeFormModal" class="text-slate-400 hover:text-slate-200">
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
-                    <div class="ui-panel__body">
+                    <div class="ui-panel__body min-h-0 flex-1 overflow-y-auto overscroll-contain">
                         <form wire:submit="save" class="space-y-5">
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
@@ -136,7 +136,7 @@
                             <hr class="border-slate-700">
                             <p class="text-sm font-semibold text-slate-200">Módulos del plan</p>
                             <p class="text-xs text-slate-500 mb-3">Marca los módulos a los que tendrán acceso las empresas con este plan. Opcional: cupo máximo de registros por módulo (vacío = sin límite en JSON).</p>
-                            <div class="max-h-64 overflow-y-auto space-y-2 rounded-lg border border-slate-700/50 p-3">
+                            <div class="max-h-48 overflow-y-auto space-y-2 rounded-lg border border-slate-700/50 p-3 sm:max-h-52">
                                 @foreach ($planFormModules as $mKey => $mDef)
                                     <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3 rounded-md bg-slate-900/40 px-2 py-2">
                                         <label class="flex items-center gap-2 text-sm text-slate-300 shrink-0">
