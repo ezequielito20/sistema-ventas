@@ -17,8 +17,13 @@ class EnsureSecurityQuestionsSetUp
             return $next($request);
         }
 
-        if ($user && !$user->security_questions_setup) {
-            if (!in_array($request->route()->getName(), [
+        // Peticiones JSON de Livewire: no redirigir (evita respuestas HTML/405 en segundo batch).
+        if ($request->hasHeader('X-Livewire')) {
+            return $next($request);
+        }
+
+        if ($user && ! $user->security_questions_setup) {
+            if (! in_array($request->route()->getName(), [
                 'security-questions.setup',
                 'security-questions.store',
                 'logout',

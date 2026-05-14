@@ -30,7 +30,7 @@ class Company extends Model
         'permissions', 'notifications', 'orders',
         'exchange-rate', 'debt-payments',
         'catalog', 'catalogo', 'auth', 'verify', 'email', 'my-plan',
-        'profile', 'security-questions',
+        'profile', 'security-questions', '_livewire',
     ];
 
     protected $fillable = [

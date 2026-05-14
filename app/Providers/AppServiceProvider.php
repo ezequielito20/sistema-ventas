@@ -5,8 +5,10 @@ namespace App\Providers;
 use App\Services\PlanEntitlementService;
 use Illuminate\Foundation\Vite;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +17,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        /*
+         * Livewire v4 usa /livewire-{hash}/update (derivado de APP_KEY). Esa URL de dos segmentos
+         * puede chocar con proxies, cachés de ruta o reglas del host y devolver 405 aunque el
+         * primer batch del componente ya haya persistido datos. Registramos un único POST estable
+         * antes del boot de paquetes para que Livewire omita el endpoint por defecto.
+         *
+         * @see \Livewire\Mechanisms\HandleRequests\HandleRequests::boot
+         */
+        $this->app->booting(function () {
+            Livewire::setUpdateRoute(function ($handle) {
+                return Route::post('/_livewire/update', $handle)->middleware(['web']);
+            });
+        });
     }
 
     /**
