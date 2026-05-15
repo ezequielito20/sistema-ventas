@@ -138,7 +138,7 @@
         <div class="ui-panel">
             <div class="ui-panel__header border-b border-slate-700/50">
                 <h2 class="text-base font-semibold text-slate-100">Franjas horarias</h2>
-                <p class="ui-panel__subtitle">Horario recurrente semanal: elegí uno o más días y la hora de entrega (misma hora para todos los días marcados en un solo alta). El cupo aplica por cada ocurrencia concreta al confirmar el pedido.</p>
+                <p class="ui-panel__subtitle">Horario recurrente por semana: marcá uno o más días y la ventana de entrega desde / hasta (misma ventana para todos los del mismo alta). El cupo cuenta por día concreto al confirmar el pedido. Podés dar varios altas (ej.: sábado 12–17 y lun–vie 17–20).</p>
             </div>
             <div class="ui-panel__body space-y-6">
                 @if ($methodModel->isDelivery() && $slotZones->isNotEmpty())
@@ -150,6 +150,9 @@
                                 <option value="{{ $z->id }}">{{ $z->name }}</option>
                             @endforeach
                         </select>
+                        @if ($deliverySlotZoneFilterActive ?? false)
+                            <p class="mt-2 text-xs text-amber-200/90">Estás viendo solo franjas de esa zona. Elegí &quot;Todas las zonas&quot; si no aparece algo que dio de alta para otra.</p>
+                        @endif
                     </div>
                 @endif
 
@@ -170,7 +173,7 @@
                     @endif
 
                     @if ($slId)
-                        <div class="grid gap-4 md:grid-cols-2">
+                        <div class="grid gap-4 md:grid-cols-3">
                             <div>
                                 <label class="mb-1 block text-xs font-semibold text-slate-400">Día</label>
                                 <select wire:model="slWeekdayIso" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100">
@@ -183,9 +186,16 @@
                                 @enderror
                             </div>
                             <div>
-                                <label class="mb-1 block text-xs font-semibold text-slate-400">Hora de entrega</label>
-                                <input type="time" wire:model="slDeliveryTime" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
-                                @error('slDeliveryTime')
+                                <label class="mb-1 block text-xs font-semibold text-slate-400">Hora desde</label>
+                                <input type="time" wire:model="slDeliveryFrom" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+                                @error('slDeliveryFrom')
+                                    <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-slate-400">Hora hasta</label>
+                                <input type="time" wire:model="slDeliveryTo" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+                                @error('slDeliveryTo')
                                     <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -208,14 +218,23 @@
                                 <p class="mt-2 text-xs text-rose-400">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="max-w-xs">
-                            <label class="mb-1 block text-xs font-semibold text-slate-400">Hora de entrega (compartida)</label>
-                            <input type="time" wire:model="slDeliveryTime" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
-                            @error('slDeliveryTime')
-                                <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
-                            @enderror
-                            <p class="mt-1 text-xs text-slate-500">Para otro horario en un día distinto, agregá otro grupo de franjas.</p>
+                        <div class="grid gap-4 sm:grid-cols-2 max-w-xl">
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-slate-400">Hora desde (compartida)</label>
+                                <input type="time" wire:model="slDeliveryFrom" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+                                @error('slDeliveryFrom')
+                                    <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-slate-400">Hora hasta (compartida)</label>
+                                <input type="time" wire:model="slDeliveryTo" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+                                @error('slDeliveryTo')
+                                    <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
+                        <p class="mt-1 max-w-xl text-xs text-slate-500">Para otro rango horario sobre otros días (u otra zona), repetí este alta después de borrar selección.</p>
                     @endif
 
                     <div class="grid gap-4 md:grid-cols-2">
@@ -225,7 +244,7 @@
                             @error('slMax')
                                 <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                             @enderror
-                            <p class="mt-1 text-xs text-slate-500">Por fecha concreta de entrega (próxima ocurrencia de ese día y hora).</p>
+                            <p class="mt-1 text-xs text-slate-500">Por fecha concreta de entrega (próxima ocurrencia de ese día dentro de la ventana).</p>
                         </div>
                         <div class="flex items-end pb-2">
                             <div class="flex items-center gap-2">
@@ -248,10 +267,10 @@
                         <thead class="border-b border-slate-700 text-xs uppercase text-slate-500">
                             <tr>
                                 <th class="py-3 px-4">Día</th>
-                                <th class="py-3 px-4">Hora</th>
+                                <th class="py-3 px-4">Desde</th>
+                                <th class="py-3 px-4">Hasta</th>
                                 <th class="py-3 px-4">Zona</th>
                                 <th class="py-3 px-4">Máx.</th>
-                                <th class="py-3 px-4">Pedidos próx.</th>
                                 <th class="py-3 px-4">Activo</th>
                                 <th class="py-3 px-4"></th>
                             </tr>
@@ -261,9 +280,9 @@
                                 <tr wire:key="sl-{{ $s->id }}" class="border-b border-slate-800/80">
                                     <td class="py-2 px-4 whitespace-nowrap">{{ $s->weekdayLabelEs() }}</td>
                                     <td class="py-2 px-4 whitespace-nowrap">{{ $s->timeShort() }}</td>
+                                    <td class="py-2 px-4 whitespace-nowrap">{{ $s->timeEndShort() }}</td>
                                     <td class="py-2 px-4">{{ $s->delivery_zone_id ? ($s->zone?->name ?? '—') : '—' }}</td>
                                     <td class="py-2 px-4">{{ $s->max_orders }}</td>
-                                    <td class="py-2 px-4">{{ $s->bookingsNextOccurrence() }}</td>
                                     <td class="py-2 px-4">{{ $s->is_active ? 'Sí' : 'No' }}</td>
                                     <td class="py-2 px-4 text-right whitespace-nowrap">
                                         <button type="button" wire:click="editSlot({{ $s->id }})" class="text-cyan-400 hover:underline">Editar</button>
@@ -272,7 +291,16 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-6 px-4 text-center text-slate-500">Sin franjas para el filtro actual.</td>
+                                    <td colspan="7" class="py-6 px-4">
+                                        @if (($deliverySlotsFilteredOutHint ?? false))
+                                            <p class="text-center text-sm text-slate-300">Hay {{ $deliverySlotsTotalForMethod }} franja(s) en este método, pero ninguna coincide con la zona del filtro.</p>
+                                            <p class="mt-2 text-center">
+                                                <button type="button" wire:click="clearSlotZoneFilter" class="text-cyan-400 hover:underline">Mostrar todas las zonas</button>
+                                            </p>
+                                        @else
+                                            <p class="text-center text-sm text-slate-500">Sin franjas para el filtro actual.</p>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>

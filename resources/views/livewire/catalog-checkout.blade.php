@@ -106,7 +106,7 @@
                             <option value="">{{ __('Seleccionar…') }}</option>
                             @foreach ($this->deliverySlots as $s)
                                 @php($nextDay = $s->resolveNextScheduledDeliveryDate())
-                                <option value="{{ $s->id }}">{{ $s->weekdayLabelEs() }}, {{ $s->timeShort() }} · próx. {{ $nextDay->format('d/m') }}</option>
+                                <option value="{{ $s->id }}">{{ $s->weekdayLabelEs() }}, {{ $s->deliveryWindowLabelShort() }} · próx. {{ $nextDay->format('d/m') }}</option>
                             @endforeach
                         </select>
                         @error('delivery_slot_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror

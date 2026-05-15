@@ -207,7 +207,7 @@ class CatalogOrderCheckoutService
                 $deliverySnapshot .= "\nZona: ".$zone->name;
             }
             if ($slot && $slotNextCarbon !== null) {
-                $deliverySnapshot .= "\nVentana: ".$slot->weekdayLabelEs().' '.$slot->timeShort().' (próx. '.$slotNextCarbon->format('d/m/Y').')';
+                $deliverySnapshot .= "\nVentana: ".$slot->weekdayLabelEs().' '.$slot->deliveryWindowLabelShort().' (próx. '.$slotNextCarbon->format('d/m/Y').')';
             }
 
             $token = Order::generateSummaryToken();

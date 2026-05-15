@@ -7,6 +7,7 @@ use App\Models\DeliverySlot;
 use App\Models\DeliveryZone;
 use App\Models\Order;
 use App\Services\PlanEntitlementService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -49,8 +50,10 @@ class CatalogDeliveryMethodForm extends Component
     /** Al editar una fila puntual del listado */
     public int $slWeekdayIso = 1;
 
-    /** Formato tipo time HTML (HH:MM) */
-    public string $slDeliveryTime = '';
+    /** Formato time HTML HH:MM — ventana desde / hasta compartidas al crear bloque */
+    public string $slDeliveryFrom = '';
+
+    public string $slDeliveryTo = '';
 
     public int $slMax = 1;
 
@@ -128,6 +131,7 @@ class CatalogDeliveryMethodForm extends Component
                 ->whereKey($this->deliveryMethodId)
                 ->firstOrFail();
             $this->fillMethodFields($row);
+            $this->normalizePickupSlotZonesStored($row);
 
             return;
         }
@@ -142,6 +146,22 @@ class CatalogDeliveryMethodForm extends Component
         $this->delInstructions = (string) ($row->instructions ?? '');
         $this->delPickupAddress = (string) ($row->pickup_address ?? '');
         $this->delActive = (bool) $row->is_active;
+    }
+
+    /**
+     * En pickup una franja nunca debe llevar zona. Si antes era delivery con zona almacenada, quedarían huérfanas y el listado anterior las ocultaba.
+     */
+    protected function normalizePickupSlotZonesStored(?CompanyDeliveryMethod $method): void
+    {
+        if (! $method || ! $method->isPickup()) {
+            return;
+        }
+
+        DeliverySlot::query()
+            ->where('company_id', $this->companyId)
+            ->where('company_delivery_method_id', $method->id)
+            ->whereNotNull('delivery_zone_id')
+            ->update(['delivery_zone_id' => null]);
     }
 
     public function updatedDelType(): void
@@ -191,6 +211,13 @@ class CatalogDeliveryMethodForm extends Component
                 ->where('company_id', $this->companyId)
                 ->whereKey($id)
                 ->update($payload);
+
+            if (($payload['type'] ?? null) === CompanyDeliveryMethod::TYPE_PICKUP) {
+                DeliverySlot::query()
+                    ->where('company_id', $this->companyId)
+                    ->where('company_delivery_method_id', $id)
+                    ->update(['delivery_zone_id' => null]);
+            }
 
             $this->toast('Método de entrega actualizado.', 'success');
 
@@ -292,7 +319,8 @@ class CatalogDeliveryMethodForm extends Component
         }
         $this->slSelectedWeekdays = [];
         $this->slWeekdayIso = 1;
-        $this->slDeliveryTime = '';
+        $this->slDeliveryFrom = '';
+        $this->slDeliveryTo = '';
         $this->slMax = 1;
         $this->slActive = true;
     }
@@ -317,14 +345,16 @@ class CatalogDeliveryMethodForm extends Component
         CompanyDeliveryMethod $method,
         ?int $zoneId,
         int $weekdayIso,
-        string $deliveryTimeHms,
+        string $deliveryTimeStartHms,
+        string $deliveryTimeEndHms,
         ?int $ignoreSlotId,
     ): bool {
         $q = DeliverySlot::query()
             ->where('company_id', $this->companyId)
             ->where('company_delivery_method_id', $method->id)
             ->where('weekday_iso', $weekdayIso)
-            ->where('delivery_time', $deliveryTimeHms);
+            ->where('delivery_time', $deliveryTimeStartHms)
+            ->whereRaw('COALESCE(delivery_time_end, delivery_time) = ?', [$deliveryTimeEndHms]);
 
         if ($method->isDelivery()) {
             $q->where('delivery_zone_id', $zoneId);
@@ -344,6 +374,13 @@ class CatalogDeliveryMethodForm extends Component
         $this->resetSlotForm();
     }
 
+    /** Quitar filtro por zona para ver todas las franjas del método. */
+    public function clearSlotZoneFilter(): void
+    {
+        $this->slotListZoneId = 0;
+        $this->resetSlotForm();
+    }
+
     public function editSlot(int $id): void
     {
         $this->authorizeDeliveries('edit');
@@ -358,7 +395,8 @@ class CatalogDeliveryMethodForm extends Component
         $this->slId = $row->id;
         $this->slZoneId = $row->delivery_zone_id;
         $this->slWeekdayIso = (int) $row->weekday_iso;
-        $this->slDeliveryTime = $row->timeShort();
+        $this->slDeliveryFrom = $row->timeShort();
+        $this->slDeliveryTo = $row->timeEndShort();
         $this->slSelectedWeekdays = [];
         $this->slMax = (int) $row->max_orders;
         $this->slActive = (bool) $row->is_active;
@@ -384,14 +422,16 @@ class CatalogDeliveryMethodForm extends Component
         if ($this->slId) {
             $rules = array_merge($baseRules, [
                 'slWeekdayIso' => 'required|integer|min:1|max:7',
-                'slDeliveryTime' => 'required|date_format:H:i',
+                'slDeliveryFrom' => 'required|date_format:H:i',
+                'slDeliveryTo' => 'required|date_format:H:i',
             ]);
             $this->validate($rules);
         } else {
             $rules = array_merge($baseRules, [
                 'slSelectedWeekdays' => 'required|array|min:1',
                 'slSelectedWeekdays.*' => 'integer|min:1|max:7',
-                'slDeliveryTime' => 'required|date_format:H:i',
+                'slDeliveryFrom' => 'required|date_format:H:i',
+                'slDeliveryTo' => 'required|date_format:H:i',
             ]);
             $this->validate($rules);
         }
@@ -408,9 +448,19 @@ class CatalogDeliveryMethodForm extends Component
             }
         }
 
-        $timeHms = $this->normalizedSlotDeliveryTime($this->slDeliveryTime);
-        if (! $timeHms) {
-            $this->toast('La hora ingresada no es válida.', 'error');
+        $timeFromHms = $this->normalizedSlotDeliveryTime($this->slDeliveryFrom);
+        $timeToHms = $this->normalizedSlotDeliveryTime($this->slDeliveryTo);
+        if (! $timeFromHms || ! $timeToHms) {
+            $this->toast('Revisá el formato de las horas (desde / hasta).', 'error');
+
+            return;
+        }
+
+        $anchor = '2001-01-01';
+        if (
+            ! Carbon::parse($anchor.' '.$timeToHms)->greaterThan(Carbon::parse($anchor.' '.$timeFromHms))
+        ) {
+            $this->toast('La hora hasta debe ser mayor que la hora desde.', 'error');
 
             return;
         }
@@ -436,8 +486,8 @@ class CatalogDeliveryMethodForm extends Component
 
             $wd = (int) $this->slWeekdayIso;
 
-            if ($this->weeklySlotDuplicateExists($method, $zonePayloadId, $wd, $timeHms, $slot->id)) {
-                $this->toast('Ya existe esa combinación de día, hora y zona.', 'error');
+            if ($this->weeklySlotDuplicateExists($method, $zonePayloadId, $wd, $timeFromHms, $timeToHms, $slot->id)) {
+                $this->toast('Ya existe esa combinación de día, ventana y zona.', 'error');
 
                 return;
             }
@@ -445,11 +495,13 @@ class CatalogDeliveryMethodForm extends Component
             $slot->update([
                 'delivery_zone_id' => $zonePayloadId,
                 'weekday_iso' => $wd,
-                'delivery_time' => $timeHms,
+                'delivery_time' => $timeFromHms,
+                'delivery_time_end' => $timeToHms,
                 'max_orders' => $this->slMax,
                 'is_active' => $this->slActive,
             ]);
             $this->toast('Franja actualizada.', 'success');
+            $this->slotListZoneId = 0;
             $this->resetSlotForm();
 
             return;
@@ -459,8 +511,12 @@ class CatalogDeliveryMethodForm extends Component
         sort($days);
 
         foreach ($days as $wd) {
-            if ($this->weeklySlotDuplicateExists($method, $zonePayloadId, $wd, $timeHms, null)) {
-                $this->toast('Ya existe la franja '.DeliverySlot::isoWeekdaysLabelsEs()[$wd].' a las '.$this->slDeliveryTime.'.', 'error');
+            if ($this->weeklySlotDuplicateExists($method, $zonePayloadId, $wd, $timeFromHms, $timeToHms, null)) {
+                $this->toast(
+                    'Ya existe la franja '.DeliverySlot::isoWeekdaysLabelsEs()[$wd]
+                    .' con el horario '.$this->slDeliveryFrom.' – '.$this->slDeliveryTo.'.',
+                    'error'
+                );
 
                 return;
             }
@@ -472,7 +528,8 @@ class CatalogDeliveryMethodForm extends Component
                 'company_delivery_method_id' => $method->id,
                 'delivery_zone_id' => $zonePayloadId,
                 'weekday_iso' => $wd,
-                'delivery_time' => $timeHms,
+                'delivery_time' => $timeFromHms,
+                'delivery_time_end' => $timeToHms,
                 'max_orders' => $this->slMax,
                 'is_active' => $this->slActive,
             ]);
@@ -482,6 +539,7 @@ class CatalogDeliveryMethodForm extends Component
             count($days) === 1 ? 'Franja creada.' : count($days).' franjas creadas.',
             'success'
         );
+        $this->slotListZoneId = 0;
         $this->resetSlotForm();
     }
 
@@ -524,12 +582,9 @@ class CatalogDeliveryMethodForm extends Component
                     $method->isDelivery() && $this->slotListZoneId > 0,
                     fn ($q) => $q->where('delivery_zone_id', $this->slotListZoneId)
                 )
-                ->when(
-                    ! $method->isDelivery(),
-                    fn ($q) => $q->whereNull('delivery_zone_id')
-                )
                 ->orderBy('weekday_iso')
                 ->orderBy('delivery_time')
+                ->orderByRaw('COALESCE(delivery_time_end, delivery_time)')
                 ->with('zone')
                 ->get();
 
@@ -541,6 +596,20 @@ class CatalogDeliveryMethodForm extends Component
             }
         }
 
+        $deliverySlotZoneFilterActive = false;
+        $deliverySlotsTotalForMethod = 0;
+        $deliverySlotsFilteredOutHint = false;
+        if ($method !== null) {
+            $deliverySlotZoneFilterActive = $method->isDelivery() && $this->slotListZoneId > 0;
+            $deliverySlotsTotalForMethod = DeliverySlot::query()
+                ->where('company_id', $this->companyId)
+                ->where('company_delivery_method_id', $method->id)
+                ->count();
+            $deliverySlotsFilteredOutHint = $deliverySlotZoneFilterActive
+                && $slots->isEmpty()
+                && $deliverySlotsTotalForMethod > 0;
+        }
+
         $headingTitle = $this->deliveryMethodId ? 'Editar método de entrega' : 'Nuevo método de entrega';
 
         return view('livewire.catalog-delivery-method-form', [
@@ -549,6 +618,9 @@ class CatalogDeliveryMethodForm extends Component
             'zones' => $zones,
             'slots' => $slots,
             'slotZones' => $slotZones,
+            'deliverySlotZoneFilterActive' => $deliverySlotZoneFilterActive,
+            'deliverySlotsTotalForMethod' => $deliverySlotsTotalForMethod,
+            'deliverySlotsFilteredOutHint' => $deliverySlotsFilteredOutHint,
         ]);
     }
 }

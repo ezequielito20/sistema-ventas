@@ -94,10 +94,11 @@
                     <th style="width: 6%;">#</th>
                     <th style="width: 22%;">Método</th>
                     <th style="width: 22%;">Zona</th>
-                    <th style="width: 10%;">Día</th>
-                    <th style="width: 10%;">Hora</th>
-                    <th style="width: 8%;" class="pdf-num">Máx.</th>
-                    <th style="width: 8%;" class="pdf-num">Próx. ped.</th>
+                    <th style="width: 9%;">Día</th>
+                    <th style="width: 7%;">Desde</th>
+                    <th style="width: 7%;">Hasta</th>
+                    <th style="width: 7%;" class="pdf-num">Máx.</th>
+                    <th style="width: 7%;">Activo</th>
                 </tr>
             </thead>
             <tbody>
@@ -108,8 +109,9 @@
                         <td>{{ $slot->delivery_zone_id ? ($slot->zone?->name ?? '—') : '—' }}</td>
                         <td>{{ $slot->weekdayLabelEs() }}</td>
                         <td>{{ $slot->timeShort() }}</td>
+                        <td>{{ $slot->timeEndShort() }}</td>
                         <td class="pdf-num">{{ $slot->max_orders }}</td>
-                        <td class="pdf-num">{{ $slot->bookingsNextOccurrence() }}</td>
+                        <td>{{ $slot->is_active ? 'Sí' : 'No' }}</td>
                     </tr>
                 @endforeach
             </tbody>

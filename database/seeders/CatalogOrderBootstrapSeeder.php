@@ -70,6 +70,7 @@ class CatalogOrderBootstrapSeeder extends Seeder
                 'delivery_zone_id' => null,
                 'weekday_iso' => (int) now()->addDay()->isoWeekday(),
                 'delivery_time' => '09:00:00',
+                'delivery_time_end' => '17:00:00',
                 'max_orders' => 1,
                 'is_active' => true,
             ]);
@@ -80,6 +81,7 @@ class CatalogOrderBootstrapSeeder extends Seeder
                 'delivery_zone_id' => $zone->id,
                 'weekday_iso' => (int) now()->addDays(2)->isoWeekday(),
                 'delivery_time' => '14:00:00',
+                'delivery_time_end' => '18:00:00',
                 'max_orders' => 1,
                 'is_active' => true,
             ]);

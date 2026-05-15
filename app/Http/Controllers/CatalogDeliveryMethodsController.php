@@ -64,6 +64,7 @@ class CatalogDeliveryMethodsController extends Controller
             ->with(['deliveryMethod', 'zone'])
             ->orderBy('weekday_iso')
             ->orderBy('delivery_time')
+            ->orderByRaw('COALESCE(delivery_time_end, delivery_time)')
             ->get();
 
         $emittedAt = now();

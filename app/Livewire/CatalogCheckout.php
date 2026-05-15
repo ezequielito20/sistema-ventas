@@ -120,7 +120,8 @@ class CatalogCheckout extends Component
             ->where('company_delivery_method_id', $method->id)
             ->where('is_active', true)
             ->orderBy('weekday_iso')
-            ->orderBy('delivery_time');
+            ->orderBy('delivery_time')
+            ->orderByRaw('COALESCE(delivery_time_end, delivery_time)');
 
         if ($method->isDelivery()) {
             if (! $this->delivery_zone_id) {

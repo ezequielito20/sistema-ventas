@@ -14,6 +14,7 @@ class DeliverySlot extends Model
         'delivery_zone_id',
         'weekday_iso',
         'delivery_time',
+        'delivery_time_end',
         'max_orders',
         'is_active',
     ];
@@ -44,20 +45,37 @@ class DeliverySlot extends Model
         return self::isoWeekdaysLabelsEs()[(int) $this->weekday_iso] ?? '—';
     }
 
-    /** Hora HH:MM (columna puede venir como H:i:s). */
+    /** HH:MM (columna puede venir como H:i:s) — hora desde. */
     public function timeShort(): string
     {
-        $t = (string) $this->delivery_time;
-        if ($t === '') {
-            return '—';
+        return self::formatTimeColumn((string) $this->delivery_time);
+    }
+
+    /** HH:MM — hora hasta (si falta coincide con desde por compatibilidad). */
+    public function timeEndShort(): string
+    {
+        $end = trim((string) ($this->delivery_time_end ?? ''));
+        if ($end === '') {
+            return $this->timeShort();
         }
 
-        return strlen($t) >= 8 ? substr($t, 0, 5) : $t;
+        return self::formatTimeColumn($end);
+    }
+
+    /** Texto tipo "12:00 – 17:00" o "12:00" si coincide inicio/fin. */
+    public function deliveryWindowLabelShort(): string
+    {
+        $a = $this->timeShort();
+        $b = $this->timeEndShort();
+        if ($a === $b) {
+            return $a;
+        }
+
+        return $a.' – '.$b;
     }
 
     /**
-     * Próxima fecha calendario (sin hora) en la que aplicaría esta franja recurrente,
-     * considerando día ISO y si la hora de ese día ya pasó respecto de $now.
+     * Próxima fecha calendario (sin hora) en la que la ventana aún puede usarse para entregar ese día respecto de $now.
      */
     public function resolveNextScheduledDeliveryDate(?Carbon $now = null): Carbon
     {
@@ -65,10 +83,10 @@ class DeliverySlot extends Model
         $now = ($now ?: Carbon::now($tz))->copy()->timezone($tz);
         $today = $now->copy()->startOfDay();
 
-        $timeSql = trim((string) $this->delivery_time);
-        if (strlen($timeSql) <= 5) {
-            $timeSql .= strlen($timeSql) === 5 ? ':00' : ':00:00';
-        }
+        $startSql = self::toHmsSql((string) $this->delivery_time);
+        $endRaw = trim((string) ($this->delivery_time_end ?? ''));
+
+        $endSql = self::toHmsSql($endRaw !== '' ? $endRaw : (string) $this->delivery_time);
 
         $targetW = (int) $this->weekday_iso;
 
@@ -77,10 +95,12 @@ class DeliverySlot extends Model
             if ((int) $candidateDay->isoWeekday() !== $targetW) {
                 continue;
             }
-            $combined = Carbon::parse($candidateDay->format('Y-m-d').' '.$timeSql, $tz);
-            if ($combined->greaterThan($now)) {
-                return $candidateDay;
+            $windowEnd = Carbon::parse($candidateDay->format('Y-m-d').' '.$endSql, $tz);
+            if ($now->greaterThan($windowEnd)) {
+                continue;
             }
+
+            return $candidateDay;
         }
 
         $c = $today->copy()->addDays(14);
@@ -113,6 +133,34 @@ class DeliverySlot extends Model
         return $this->pendingBookingsForDate(
             $this->resolveNextScheduledDeliveryDate()->format('Y-m-d')
         );
+    }
+
+    public static function formatTimeColumn(string $t): string
+    {
+        if ($t === '') {
+            return '—';
+        }
+
+        return strlen($t) >= 8 ? substr($t, 0, 5) : $t;
+    }
+
+    /** Para parsear valores TIME desde BD o desde input HTML (HH:MM / H:M). */
+    public static function toHmsSql(string $value): string
+    {
+        $t = trim($value);
+        if ($t === '') {
+            return '00:00:00';
+        }
+
+        if (preg_match('/^(\d{1,2}):(\d{2})$/', $t, $m)) {
+            return sprintf('%02d:%02d:00', max(0, min(23, (int) $m[1])), max(0, min(59, (int) $m[2])));
+        }
+
+        if (preg_match('/^(\d{1,2}):(\d{2}):(\d{2})$/', $t, $m)) {
+            return sprintf('%02d:%02d:%02d', max(0, min(23, (int) $m[1])), max(0, min(59, (int) $m[2])), max(0, min(59, (int) $m[3])));
+        }
+
+        return '00:00:00';
     }
 
     public function company(): BelongsTo
