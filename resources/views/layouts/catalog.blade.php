@@ -7,6 +7,7 @@
     <title>@yield('title', __('Catálogo'))</title>
     @stack('meta')
     @vite(['resources/js/catalog-public.js'])
+    @livewireStyles
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
     @stack('head')
 </head>
@@ -16,6 +17,7 @@
 
 {{-- Scripts inline antes del footer por si el pie usa datos preparados aquí --}}
 @stack('scripts')
+@livewireScripts
 
 @isset($company)
     <footer class="relative z-10 mt-12 w-full border-t border-dv-outline-variant bg-dv-surface-container-lowest py-stack-lg @yield('footer_width', 'lg:ml-56 xl:ml-64')">

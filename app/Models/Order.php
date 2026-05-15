@@ -24,6 +24,7 @@ class Order extends Model
         'company_payment_method_id',
         'company_delivery_method_id',
         'delivery_zone_id',
+        'delivery_custom_location',
         'delivery_slot_id',
         'scheduled_delivery_date',
         'exchange_rate_used',

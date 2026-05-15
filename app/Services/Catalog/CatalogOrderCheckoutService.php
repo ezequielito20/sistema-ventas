@@ -83,15 +83,36 @@ class CatalogOrderCheckoutService
         }
 
         $zone = null;
+        $customLocRaw = trim((string) ($data['delivery_custom_location'] ?? ''));
+        $customLoc = $customLocRaw !== '' ? $customLocRaw : null;
+
+        if ($deliveryMethod->isPickup()) {
+            $customLoc = null;
+        }
+
         if ($deliveryMethod->isDelivery()) {
-            $zone = DeliveryZone::query()
+            $zonesBaseQuery = DeliveryZone::query()
                 ->where('company_delivery_method_id', $deliveryMethod->id)
-                ->where('is_active', true)
-                ->whereKey($data['delivery_zone_id'] ?? 0)
-                ->first();
-            if (! $zone) {
+                ->where('is_active', true);
+            $hasZones = $zonesBaseQuery->exists();
+
+            if ($customLoc !== null) {
+                if (! empty($data['delivery_zone_id'])) {
+                    throw ValidationException::withMessages([
+                        'delivery_zone_id' => 'No puede combinar una zona de la lista con dirección personalizada.',
+                    ]);
+                }
+                $zone = null;
+            } elseif ($hasZones) {
+                $zone = (clone $zonesBaseQuery)->whereKey($data['delivery_zone_id'] ?? 0)->first();
+                if (! $zone) {
+                    throw ValidationException::withMessages([
+                        'delivery_zone_id' => 'Debe seleccionar una zona de entrega.',
+                    ]);
+                }
+            } else {
                 throw ValidationException::withMessages([
-                    'delivery_zone_id' => 'Debe seleccionar una zona de entrega.',
+                    'delivery_custom_location' => 'Indique la zona o dirección para el delivery.',
                 ]);
             }
         }
@@ -109,10 +130,27 @@ class CatalogOrderCheckoutService
                     'delivery_slot_id' => 'El horario seleccionado no es válido.',
                 ]);
             }
-            if ($deliveryMethod->isDelivery() && (int) $slot->delivery_zone_id !== (int) $zone?->id) {
-                throw ValidationException::withMessages([
-                    'delivery_slot_id' => 'El horario no corresponde a la zona elegida.',
-                ]);
+            if ($deliveryMethod->isDelivery() && $slot) {
+                if ($slot->delivery_zone_id === null) {
+                    throw ValidationException::withMessages([
+                        'delivery_slot_id' => 'El horario no es válido para delivery.',
+                    ]);
+                }
+                $slotZoneOk = DeliveryZone::query()
+                    ->where('company_delivery_method_id', $deliveryMethod->id)
+                    ->where('is_active', true)
+                    ->whereKey($slot->delivery_zone_id)
+                    ->exists();
+                if (! $slotZoneOk) {
+                    throw ValidationException::withMessages([
+                        'delivery_slot_id' => 'El horario no corresponde a este método de entrega.',
+                    ]);
+                }
+                if ($zone !== null && (int) $slot->delivery_zone_id !== (int) $zone->id) {
+                    throw ValidationException::withMessages([
+                        'delivery_slot_id' => 'El horario no corresponde a la zona elegida.',
+                    ]);
+                }
             }
             if ($deliveryMethod->isPickup() && $slot->delivery_zone_id !== null) {
                 throw ValidationException::withMessages([
@@ -128,7 +166,7 @@ class CatalogOrderCheckoutService
             ]);
         }
 
-        return DB::transaction(function () use ($company, $cart, $data, $paymentMethod, $deliveryMethod, $zone, $slot, $rate): Order {
+        return DB::transaction(function () use ($company, $cart, $data, $paymentMethod, $deliveryMethod, $zone, $slot, $rate, $customLoc): Order {
             $lines = [];
             $subtotal = 0.0;
 
@@ -189,6 +227,7 @@ class CatalogOrderCheckoutService
                     ]);
                 }
                 $slot = $slotLocked;
+                $slot->loadMissing('zone:id,name');
             }
 
             $allocatedDiscount = 0.0;
@@ -218,8 +257,15 @@ class CatalogOrderCheckoutService
             if ($zone) {
                 $deliverySnapshot .= "\nZona: ".$zone->name;
             }
+            if ($customLoc) {
+                $deliverySnapshot .= "\n\nZona solicitada (otra — costo de envío por confirmar):\n".$customLoc;
+                $deliverySnapshot .= "\nLa tienda te informará el costo del envío al leer tu pedido.";
+            }
             if ($slot && $slotNextCarbon !== null) {
                 $deliverySnapshot .= "\nVentana: ".$slot->weekdayLabelEs().' '.$slot->deliveryWindowLabelShort().' (próx. '.$slotNextCarbon->format('d/m/Y').')';
+                if ($customLoc !== null && $slot->zone !== null) {
+                    $deliverySnapshot .= "\n(franja asociada operativamente a: ".$slot->zone->name.')';
+                }
             }
 
             $token = Order::generateSummaryToken();
@@ -238,6 +284,7 @@ class CatalogOrderCheckoutService
                 'company_payment_method_id' => $paymentMethod->id,
                 'company_delivery_method_id' => $deliveryMethod->id,
                 'delivery_zone_id' => $zone?->id,
+                'delivery_custom_location' => $customLoc,
                 'delivery_slot_id' => $slot?->id,
                 'scheduled_delivery_date' => $scheduledDeliveryDate,
                 'exchange_rate_used' => $rate,
