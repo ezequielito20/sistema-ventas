@@ -446,11 +446,21 @@
                     <div class="min-h-0 flex-1 overflow-y-auto pr-1">
                         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
                             @foreach ($permissionsGrouped as $module => $modulePermissions)
+                                @php
+                                    $modulePermissionIds = $modulePermissions->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+                                    $moduleAllSelected =
+                                        $modulePermissionIds !== []
+                                        && count(array_intersect($modulePermissionIds, $selectedPermissionIds)) === count($modulePermissionIds);
+                                @endphp
                                 <div class="rounded-xl border border-slate-600/40 bg-slate-950/40" wire:key="mod-{{ $module }}">
                                     <div class="flex items-center justify-between gap-2 border-b border-slate-700/50 px-3 py-2">
                                         <span class="text-sm font-semibold text-cyan-200"><i class="fas fa-folder mr-1 text-slate-400"></i>{{ \App\Support\PermissionFriendlyNames::permissionGroupLabel($module) }}</span>
-                                        <button type="button" wire:click="toggleModulePermissions(@js($module))" class="text-xs text-cyan-400 hover:text-cyan-200">
-                                            Alternar módulo
+                                        <button
+                                            type="button"
+                                            wire:click="toggleModulePermissions(@js($module))"
+                                            class="text-xs text-cyan-400 hover:text-cyan-200"
+                                        >
+                                            {{ $moduleAllSelected ? 'Seleccionar ninguno' : 'Seleccionar todos' }}
                                         </button>
                                     </div>
                                     <div class="max-h-56 space-y-1 overflow-y-auto px-2 py-2">
