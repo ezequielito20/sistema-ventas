@@ -117,8 +117,36 @@ class CatalogOrderCheckoutService
             }
         }
 
+        $catalogShipNoSlot = (bool) ($data['catalog_ship_no_slot'] ?? false);
+        $catalogRequestedDeliveryDate = trim((string) ($data['catalog_requested_delivery_date'] ?? ''));
+
         $slot = null;
-        if (! empty($data['delivery_slot_id'])) {
+
+        if ($catalogShipNoSlot) {
+            if (! $deliveryMethod->isDelivery() || $customLoc === null) {
+                throw ValidationException::withMessages([
+                    'catalog_ship_no_slot' => 'La solicitud de delivery sin franja fija no es válida.',
+                ]);
+            }
+            if ($zone !== null) {
+                throw ValidationException::withMessages([
+                    'catalog_ship_no_slot' => 'No puede combinar zona de lista con modo sin franja.',
+                ]);
+            }
+            Validator::make(
+                ['catalog_requested_delivery_date' => $catalogRequestedDeliveryDate],
+                ['catalog_requested_delivery_date' => ['required', 'date_format:Y-m-d']],
+                [
+                    'catalog_requested_delivery_date.required' => 'Indicá la fecha deseada para el delivery.',
+                    'catalog_requested_delivery_date.date_format' => 'La fecha del delivery no es válida.',
+                ]
+            )->validate();
+            if (! empty($data['delivery_slot_id'])) {
+                throw ValidationException::withMessages([
+                    'delivery_slot_id' => 'No selecciones franja si indicás fecha y lugar a coordinar.',
+                ]);
+            }
+        } elseif (! empty($data['delivery_slot_id'])) {
             $slot = DeliverySlot::query()
                 ->where('company_id', $company->id)
                 ->where('company_delivery_method_id', $deliveryMethod->id)
@@ -159,6 +187,12 @@ class CatalogOrderCheckoutService
             }
         }
 
+        if ($this->slotsMandatoryForContext($company, $deliveryMethod, $zone, $customLoc, $catalogShipNoSlot) && $slot === null) {
+            throw ValidationException::withMessages([
+                'delivery_slot_id' => 'Seleccioná fecha y horario de entrega disponibles.',
+            ]);
+        }
+
         $rate = (float) ExchangeRate::current();
         if ($rate <= 0) {
             throw ValidationException::withMessages([
@@ -166,7 +200,7 @@ class CatalogOrderCheckoutService
             ]);
         }
 
-        return DB::transaction(function () use ($company, $cart, $data, $paymentMethod, $deliveryMethod, $zone, $slot, $rate, $customLoc): Order {
+        return DB::transaction(function () use ($company, $cart, $data, $paymentMethod, $deliveryMethod, $zone, $slot, $rate, $customLoc, $catalogShipNoSlot, $catalogRequestedDeliveryDate): Order {
             $lines = [];
             $subtotal = 0.0;
 
@@ -228,6 +262,8 @@ class CatalogOrderCheckoutService
                 }
                 $slot = $slotLocked;
                 $slot->loadMissing('zone:id,name');
+            } elseif ($catalogShipNoSlot && $deliveryMethod->isDelivery()) {
+                $scheduledDeliveryDate = $catalogRequestedDeliveryDate;
             }
 
             $allocatedDiscount = 0.0;
@@ -266,6 +302,8 @@ class CatalogOrderCheckoutService
                 if ($customLoc !== null && $slot->zone !== null) {
                     $deliverySnapshot .= "\n(franja asociada operativamente a: ".$slot->zone->name.')';
                 }
+            } elseif ($catalogShipNoSlot && $scheduledDeliveryDate !== null) {
+                $deliverySnapshot .= "\nFecha indicada por el cliente: ".Carbon::parse($scheduledDeliveryDate)->format('d/m/Y').' (sin franja fija; costo de envío por confirmar).';
             }
 
             $token = Order::generateSummaryToken();
@@ -322,6 +360,49 @@ class CatalogOrderCheckoutService
 
             return $order->load('items');
         });
+    }
+
+    /**
+     * Hay franjas configuradas con cupo y el cliente debe elegir una (salvo catalog_ship_no_slot).
+     */
+    protected function slotsMandatoryForContext(
+        Company $company,
+        CompanyDeliveryMethod $dm,
+        ?DeliveryZone $zone,
+        ?string $customLoc,
+        bool $catalogShipNoSlot
+    ): bool {
+        if ($catalogShipNoSlot) {
+            return false;
+        }
+
+        $q = DeliverySlot::query()
+            ->where('company_id', $company->id)
+            ->where('company_delivery_method_id', $dm->id)
+            ->where('is_active', true);
+
+        if ($dm->isPickup()) {
+            $q->whereNull('delivery_zone_id');
+        } elseif ($dm->isDelivery()) {
+            $zones = DeliveryZone::query()
+                ->where('company_delivery_method_id', $dm->id)
+                ->where('is_active', true)
+                ->get();
+            if ($zones->isEmpty()) {
+                return false;
+            }
+            if ($zone) {
+                $q->where('delivery_zone_id', $zone->id);
+            } elseif ($customLoc !== null) {
+                $q->whereIn('delivery_zone_id', $zones->pluck('id')->all());
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        return $q->get()->contains(fn (DeliverySlot $s) => $s->hasCapacity());
     }
 
     protected function dispatchNewOrderNotifications(Order $order): void

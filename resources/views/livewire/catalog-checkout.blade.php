@@ -2,7 +2,7 @@
     $checkoutSuccessVisible = $submitted && $createdOrderId;
     $checkoutCartEmptyVisible = ! $checkoutSuccessVisible && count($cartItems) === 0;
     $checkoutFormVisible = ! $checkoutSuccessVisible && ! $checkoutCartEmptyVisible;
-    $showKindStep = $this->hasPickupDeliveryMethods && $this->hasHomeDeliveryMethods;
+    $showLogisticsKindStep = $this->logisticsRequiresChoice;
     $orderForCheckoutSummary = ($checkoutSuccessVisible && $createdOrderId)
         ? \App\Models\Order::query()->find($createdOrderId)
         : null;
@@ -108,90 +108,119 @@
                     @error('company_payment_method_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
                 </div>
 
-                @if ($showKindStep)
+                @if ($showLogisticsKindStep)
                     <div>
                         <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Tipo de logística') }}</label>
-                        <select wire:model.live="delivery_kind" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                            <option value="">{{ __('Elegí retiro en punto o envío…') }}</option>
+                        <select wire:model.live="logistics_mode" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                            <option value="">{{ __('Elegí una opción…') }}</option>
                             @if ($this->hasPickupDeliveryMethods)
-                                <option value="pickup">{{ __('Entrega / retiro en punto') }}</option>
+                                <option value="schedule">{{ __('Pautar entrega') }}</option>
                             @endif
                             @if ($this->hasHomeDeliveryMethods)
-                                <option value="delivery">{{ __('Delivery a domicilio') }}</option>
+                                <option value="ship">{{ __('Enviar por delivery') }}</option>
                             @endif
                         </select>
-                        <p class="mt-1 text-[0.65rem] text-dv-outline">{{ __('Primero indicá cómo querés recibir tu pedido; luego te mostramos las opciones que correspondan.') }}</p>
-                        @error('delivery_kind') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                        <p class="mt-1 text-[0.65rem] text-dv-outline">{{ __('Pautar entrega: retiro o punto acordado con la tienda. Enviar por delivery: llevan el pedido a tu zona u otro lugar.') }}</p>
+                        @error('logistics_mode') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
                     </div>
                 @endif
 
-                @if ($delivery_kind === 'pickup' || $delivery_kind === 'delivery' || ! $showKindStep)
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Punto / método específico') }}</label>
-                        <select wire:model.live="company_delivery_method_id" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                            <option value="">{{ __('Seleccionar…') }}</option>
-                            @foreach ($this->deliveryMethodsFiltered as $m)
-                                <option value="{{ $m->id }}">{{ $m->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('company_delivery_method_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
-                    </div>
-                @endif
+                @if (! $showLogisticsKindStep || $logistics_mode !== '')
+                    @if ($logistics_mode === 'schedule')
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Punto de entrega') }}</label>
+                            <select wire:model.live="company_delivery_method_id" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                <option value="">{{ __('Seleccionar…') }}</option>
+                                @foreach ($this->pickupMethodsCatalog as $m)
+                                    <option value="{{ $m->id }}">{{ $m->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="mt-2 rounded-lg border border-sky-500/30 bg-sky-950/40 px-3 py-2 text-[0.7rem] leading-relaxed text-sky-100/95">
+                                {{ __('Solo se realizan entregas en los puntos disponibles en esta lista. Si necesitás que te lo lleven a domicilio, elegí «Enviar por delivery» arriba.') }}
+                            </div>
+                            @error('company_delivery_method_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                        </div>
+                    @endif
 
-                @if ($delivery_kind === 'pickup' && $company_delivery_method_id && $this->hasHomeDeliveryMethods)
-                    <button type="button" wire:click="preferHomeDeliveryInstead"
-                            class="w-full rounded-lg border border-dv-secondary/50 bg-dv-secondary-container/10 px-3 py-2 text-left text-xs text-dv-secondary">
-                        <strong>{{ __('Ningún punto anterior me sirve') }}</strong> — {{ __('cambiar a delivery a domicilio y elegir zona de envío') }}
-                    </button>
-                @endif
+                    @if ($logistics_mode === 'ship')
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Zona de envío (costo extra)') }}</label>
+                            <select wire:model.live="ship_zone_choice" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                <option value="">{{ __('Seleccionar…') }}</option>
+                                @foreach ($this->shipZonesCatalog as $z)
+                                    <option value="z:{{ $z->id }}">{{ $z->name }} (+${{ number_format($z->extra_fee_usd, 2) }})</option>
+                                @endforeach
+                                <option value="other">{{ __('Otro lugar de envío (costo por confirmar)') }}</option>
+                            </select>
+                            @error('ship_zone_choice') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            @error('company_delivery_method_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                        </div>
 
-                @if ($delivery_kind === 'delivery' && $company_delivery_method_id && $this->zones->isNotEmpty())
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Zona de envío') }}</label>
-                        <select wire:model.live="delivery_zone_selection" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                            <option value="">{{ __('Seleccionar…') }}</option>
-                            @foreach ($this->zones as $z)
-                                <option value="z:{{ $z->id }}">{{ $z->name }} (+${{ number_format($z->extra_fee_usd, 2) }})</option>
-                            @endforeach
-                            <option value="custom">{{ __('Otro (costo de envío por confirmar)') }}</option>
-                        </select>
-                        @error('delivery_zone_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
-                        @error('delivery_zone_selection') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
-                    </div>
-                @endif
-
-                @if ($delivery_kind === 'delivery' && $company_delivery_method_id && ($this->isCustomDeliveryZone))
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Zona / dirección (delivery)') }}</label>
-                        <textarea wire:model="delivery_custom_zone" rows="3" maxlength="2000"
-                                  class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface"
-                                  placeholder="{{ __('Ej: urbanización, calle principal, punto de referencia…') }}"></textarea>
-                        <p class="mt-2 rounded-lg border border-amber-500/25 bg-amber-950/35 px-3 py-2 text-[0.7rem] leading-relaxed text-amber-100/95">
-                            {{ __('El cargo extra por envío puede variar.') }}
-                            <span class="text-dv-outline">{{ __('No se suma automático al total: la tienda te lo confirmará cuando lea tu pedido.') }}</span>
-                        </p>
-                        @error('delivery_custom_zone') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
-                    </div>
-                @endif
-
-                @if ($this->deliverySlots->isNotEmpty())
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Horario') }}</label>
-                        @if ($this->isCustomDeliveryZone && $delivery_kind === 'delivery')
-                            <p class="mt-1 text-[0.65rem] leading-relaxed text-dv-outline">{{ __('Las ventanas muestran el horario de reparto configurado por la tienda; si ves varias zonas es para que puedas elegir la franja que te convenga. La entrega será en la dirección que escribiste arriba.') }}</p>
+                        @if ($ship_zone_choice !== '' && str_starts_with($ship_zone_choice, 'z:') && $company_delivery_method_id && $delivery_zone_id)
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Fecha del delivery') }}</label>
+                                <select wire:model.live="ship_slot_date" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                    <option value="">{{ __('Seleccionar…') }}</option>
+                                    @foreach ($this->shipSlotDateOptions as $d)
+                                        <option value="{{ $d }}">{{ \Illuminate\Support\Carbon::parse($d)->format('d/m/Y') }}</option>
+                                    @endforeach
+                                </select>
+                                @error('ship_slot_date') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            @if ($ship_slot_date !== '')
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Hora / franja') }}</label>
+                                    <select wire:model="delivery_slot_id" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                        <option value="">{{ __('Seleccionar…') }}</option>
+                                        @foreach ($this->shipSlotsForSelectedDate as $s)
+                                            <option value="{{ $s->id }}">{{ $s->weekdayLabelEs() }}, {{ $s->deliveryWindowLabelShort() }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('delivery_slot_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                </div>
+                            @endif
                         @endif
-                        <select wire:model="delivery_slot_id" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                            <option value="">{{ __('Seleccionar…') }}</option>
-                            @foreach ($this->deliverySlots as $s)
-                                <option value="{{ $s->id }}">{{ $s->weekdayLabelEs() }}, {{ $s->deliveryWindowLabelShort() }} · próx. {{ $s->resolveNextScheduledDeliveryDate()->format('d/m') }}
-                                    @if ($delivery_kind === 'delivery' && optional($s->zone)->name)
-                                        · {{ $s->zone->name }}
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('delivery_slot_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
-                    </div>
+
+                        @if ($ship_zone_choice === 'other')
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Nombre del lugar de entrega') }}</label>
+                                    <input type="text" wire:model="ship_other_place_name" maxlength="500"
+                                           class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface"
+                                           placeholder="{{ __('Ej: urbanización, torre, referencia…') }}">
+                                    @error('ship_other_place_name') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Fecha deseada') }}</label>
+                                    <input type="date" wire:model="ship_other_date"
+                                           class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                    @error('ship_other_date') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Hora deseada') }}</label>
+                                    <input type="time" wire:model="ship_other_time"
+                                           class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                    @error('ship_other_time') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="rounded-lg border border-amber-500/25 bg-amber-950/35 px-3 py-2 text-[0.7rem] leading-relaxed text-amber-100/95">
+                                    {{ __('El costo extra de envío no se calcula ahora: la tienda te lo informará. En el resumen del pedido verás el monto de productos más «+ envío» hasta que confirmen el cargo.') }}
+                                </div>
+                            </div>
+                        @endif
+                    @endif
+
+                    @if ($logistics_mode === 'schedule' && $this->deliverySlots->isNotEmpty())
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Horario') }}</label>
+                            <select wire:model="delivery_slot_id" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                <option value="">{{ __('Seleccionar…') }}</option>
+                                @foreach ($this->deliverySlots as $s)
+                                    <option value="{{ $s->id }}">{{ $s->weekdayLabelEs() }}, {{ $s->deliveryWindowLabelShort() }} · próx. {{ $s->resolveNextScheduledDeliveryDate()->format('d/m') }}</option>
+                                @endforeach
+                            </select>
+                            @error('delivery_slot_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                        </div>
+                    @endif
                 @endif
 
                 @error('cart') <p class="text-sm text-red-400">{{ $message }}</p> @enderror

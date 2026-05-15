@@ -144,4 +144,18 @@ class Order extends Model
     {
         return (float) ($this->exchange_rate_used ?: ExchangeRate::current());
     }
+
+    /**
+     * Delivery con dirección/zona a confirmar y sin cargo de envío en el total (ej. «otro lugar»).
+     */
+    public function isCatalogShippingFeePending(): bool
+    {
+        if (! $this->deliveryMethod?->isDelivery()) {
+            return false;
+        }
+
+        return $this->delivery_zone_id === null
+            && filled($this->delivery_custom_location)
+            && (float) $this->delivery_fee_usd <= 0.0;
+    }
 }

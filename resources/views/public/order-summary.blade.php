@@ -37,11 +37,19 @@
         </tbody>
     </table>
     <div class="tot">
+        @php $pendingShip = $order->isCatalogShippingFeePending(); @endphp
         <div>Subtotal productos: <strong>${{ number_format($order->subtotal_products_usd, 2) }}</strong></div>
         <div>Descuento pago: <strong>-${{ number_format($order->payment_discount_amount_usd, 2) }}</strong></div>
-        <div>Entrega: <strong>${{ number_format($order->delivery_fee_usd, 2) }}</strong></div>
-        <div style="margin-top:8px;font-size:1.1rem;">Total USD: <strong>${{ number_format($order->total_usd, 2) }}</strong></div>
-        <div style="margin-top:4px;color:#22d3ee;">Total Bs (tasa {{ $order->exchange_rate_used }}): <strong>Bs {{ number_format($order->total_bs, 2) }}</strong></div>
+        @if ($pendingShip)
+            <div>Entrega: <strong>{{ __('Por confirmar (+ envío)') }}</strong></div>
+            <div style="margin-top:8px;font-size:1.1rem;">Total USD: <strong>${{ number_format((float) $order->total_usd, 2) }} + envío</strong></div>
+            <div style="margin-top:4px;color:#22d3ee;">Total Bs (tasa {{ $order->exchange_rate_used }}): <strong>Bs {{ number_format((float) $order->total_bs, 2) }} + envío</strong></div>
+            <p style="margin-top:10px;font-size:0.8rem;color:#94a3b8;">{{ __('El monto en bolívares corresponde solo a productos y descuento; el envío se cotiza aparte cuando la tienda confirme.') }}</p>
+        @else
+            <div>Entrega: <strong>${{ number_format($order->delivery_fee_usd, 2) }}</strong></div>
+            <div style="margin-top:8px;font-size:1.1rem;">Total USD: <strong>${{ number_format($order->total_usd, 2) }}</strong></div>
+            <div style="margin-top:4px;color:#22d3ee;">Total Bs (tasa {{ $order->exchange_rate_used }}): <strong>Bs {{ number_format($order->total_bs, 2) }}</strong></div>
+        @endif
     </div>
     <div style="margin-top:20px;font-size:0.85rem;color:#cbd5e1;white-space:pre-line;">
         <strong>Pago</strong><br>{{ $order->payment_method_snapshot }}

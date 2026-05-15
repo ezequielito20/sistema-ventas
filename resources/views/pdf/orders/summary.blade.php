@@ -105,6 +105,7 @@
     </table>
 
     <table class="pdf-totals" cellspacing="0">
+        @php $pendingShip = $order->isCatalogShippingFeePending(); @endphp
         <tr>
             <td>{{ __('Subtotal productos (USD)') }}</td>
             <td class="pdf-money">{{ number_format((float) $order->subtotal_products_usd, 2) }}</td>
@@ -113,22 +114,41 @@
             <td>{{ __('Descuento método de pago (USD)') }}</td>
             <td class="pdf-money">-{{ number_format((float) $order->payment_discount_amount_usd, 2) }}</td>
         </tr>
-        <tr>
-            <td>{{ __('Costo entrega / zona (USD)') }}</td>
-            <td class="pdf-money">{{ number_format((float) $order->delivery_fee_usd, 2) }}</td>
-        </tr>
-        <tr>
-            <td>{{ __('Tasa Bs/USD utilizada') }}</td>
-            <td class="pdf-money">{{ $order->exchange_rate_used }}</td>
-        </tr>
-        <tr>
-            <td>{{ __('Total (USD)') }}</td>
-            <td class="pdf-money">{{ number_format((float) $order->total_usd, 2) }}</td>
-        </tr>
-        <tr>
-            <td>{{ __('Total (Bs)') }}</td>
-            <td class="pdf-money">{{ number_format((float) $order->total_bs, 2) }}</td>
-        </tr>
+        @if ($pendingShip)
+            <tr>
+                <td>{{ __('Costo entrega / zona (USD)') }}</td>
+                <td class="pdf-money">{{ __('Por confirmar (+ envío)') }}</td>
+            </tr>
+            <tr>
+                <td>{{ __('Tasa Bs/USD utilizada') }}</td>
+                <td class="pdf-money">{{ $order->exchange_rate_used }}</td>
+            </tr>
+            <tr>
+                <td>{{ __('Total (USD)') }}</td>
+                <td class="pdf-money">{{ number_format((float) $order->total_usd, 2) }} + envío</td>
+            </tr>
+            <tr>
+                <td>{{ __('Total (Bs)') }}</td>
+                <td class="pdf-money">{{ number_format((float) $order->total_bs, 2) }} + envío</td>
+            </tr>
+        @else
+            <tr>
+                <td>{{ __('Costo entrega / zona (USD)') }}</td>
+                <td class="pdf-money">{{ number_format((float) $order->delivery_fee_usd, 2) }}</td>
+            </tr>
+            <tr>
+                <td>{{ __('Tasa Bs/USD utilizada') }}</td>
+                <td class="pdf-money">{{ $order->exchange_rate_used }}</td>
+            </tr>
+            <tr>
+                <td>{{ __('Total (USD)') }}</td>
+                <td class="pdf-money">{{ number_format((float) $order->total_usd, 2) }}</td>
+            </tr>
+            <tr>
+                <td>{{ __('Total (Bs)') }}</td>
+                <td class="pdf-money">{{ number_format((float) $order->total_bs, 2) }}</td>
+            </tr>
+        @endif
     </table>
 
     <table class="pdf-summary" cellspacing="0" style="margin-top: 16pt;">

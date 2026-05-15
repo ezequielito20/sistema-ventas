@@ -16,19 +16,31 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class CatalogCheckout extends Component
 {
     public int $companyId;
 
-    /** @var ''|'pickup'|'delivery' */
-    public string $delivery_kind = '';
+    /** @var ''|'schedule'|'ship' — Pautar entrega (punto) vs envío por delivery */
+    public string $logistics_mode = '';
+
+    /** Envío: '' | 'z:{zoneId}' | 'other' */
+    public string $ship_zone_choice = '';
+
+    /** Fecha calendario (Y-m-d) para filtrar franjas en delivery con zona */
+    public string $ship_slot_date = '';
 
     public string $delivery_zone_selection = '';
 
-    /** Texto cuando el cliente elige «Otro» lugar de delivery */
     public string $delivery_custom_zone = '';
+
+    public string $ship_other_place_name = '';
+
+    public string $ship_other_date = '';
+
+    public string $ship_other_time = '';
 
     public string $customer_name = '';
 
@@ -71,56 +83,84 @@ class CatalogCheckout extends Component
             ->where('type', CompanyDeliveryMethod::TYPE_DELIVERY)
             ->count();
         if ($pickups > 0 && $deliveries === 0) {
-            $this->delivery_kind = CompanyDeliveryMethod::TYPE_PICKUP;
+            $this->logistics_mode = 'schedule';
         } elseif ($deliveries > 0 && $pickups === 0) {
-            $this->delivery_kind = CompanyDeliveryMethod::TYPE_DELIVERY;
+            $this->logistics_mode = 'ship';
         }
     }
 
-    public function updatedDeliveryKind(): void
+    public function updatedLogisticsMode(): void
+    {
+        $this->resetLogisticsFields();
+    }
+
+    protected function resetLogisticsFields(): void
     {
         $this->company_delivery_method_id = null;
+        $this->ship_zone_choice = '';
+        $this->ship_slot_date = '';
         $this->delivery_zone_id = null;
         $this->delivery_slot_id = null;
         $this->delivery_zone_selection = '';
         $this->delivery_custom_zone = '';
-    }
-
-    public function preferHomeDeliveryInstead(): void
-    {
-        if (! $this->hasHomeDeliveryMethods) {
-            return;
-        }
-        $this->delivery_kind = CompanyDeliveryMethod::TYPE_DELIVERY;
-        $this->company_delivery_method_id = null;
-        $this->delivery_zone_id = null;
-        $this->delivery_slot_id = null;
-        $this->delivery_zone_selection = '';
-        $this->delivery_custom_zone = '';
+        $this->ship_other_place_name = '';
+        $this->ship_other_date = '';
+        $this->ship_other_time = '';
     }
 
     public function updatedCompanyDeliveryMethodId(): void
     {
-        $this->delivery_zone_id = null;
-        $this->delivery_slot_id = null;
-        $this->delivery_zone_selection = '';
-        $this->delivery_custom_zone = '';
-
-        if (! $this->company_delivery_method_id) {
+        if ($this->logistics_mode !== 'schedule') {
             return;
         }
 
-        /** @var CompanyDeliveryMethod|null $method */
-        $method = CompanyDeliveryMethod::query()->find($this->company_delivery_method_id);
-        if ($method && $method->isDelivery()) {
-            $hasZones = DeliveryZone::query()
-                ->where('company_delivery_method_id', $method->id)
+        $this->delivery_slot_id = null;
+    }
+
+    public function updatedShipZoneChoice(?string $value): void
+    {
+        if ($this->logistics_mode !== 'ship') {
+            return;
+        }
+
+        $this->delivery_slot_id = null;
+        $this->ship_slot_date = '';
+        $this->delivery_zone_id = null;
+        $this->company_delivery_method_id = null;
+        $this->delivery_zone_selection = '';
+        $this->delivery_custom_zone = '';
+        $this->ship_other_place_name = '';
+        $this->ship_other_date = '';
+        $this->ship_other_time = '';
+
+        if ($value === 'other') {
+            $anchor = $this->firstActiveDeliveryMethod();
+            $this->company_delivery_method_id = $anchor?->id;
+
+            return;
+        }
+
+        if (preg_match('/^z:(\d+)$/', (string) $value, $m)) {
+            $zone = DeliveryZone::query()
+                ->whereKey((int) $m[1])
                 ->where('is_active', true)
-                ->exists();
-            if (! $hasZones) {
-                $this->delivery_zone_selection = 'custom';
+                ->whereHas('deliveryMethod', function ($q) {
+                    $q->where('company_id', $this->companyId)
+                        ->where('is_active', true)
+                        ->where('type', CompanyDeliveryMethod::TYPE_DELIVERY);
+                })
+                ->with('deliveryMethod')
+                ->first();
+            if ($zone) {
+                $this->delivery_zone_id = $zone->id;
+                $this->company_delivery_method_id = (int) $zone->company_delivery_method_id;
             }
         }
+    }
+
+    public function updatedShipSlotDate(): void
+    {
+        $this->delivery_slot_id = null;
     }
 
     public function updatedDeliveryZoneSelection(?string $value): void
@@ -143,6 +183,17 @@ class CatalogCheckout extends Component
         }
 
         $this->delivery_zone_id = null;
+    }
+
+    protected function firstActiveDeliveryMethod(): ?CompanyDeliveryMethod
+    {
+        return CompanyDeliveryMethod::query()
+            ->where('company_id', $this->companyId)
+            ->where('is_active', true)
+            ->where('type', CompanyDeliveryMethod::TYPE_DELIVERY)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->first();
     }
 
     public function getCompanyProperty(): Company
@@ -168,19 +219,38 @@ class CatalogCheckout extends Component
             ->exists();
     }
 
-    /**
-     * Métodos de entrega según pickup / delivery ya elegidos.
-     */
-    public function getDeliveryMethodsFilteredProperty(): Collection
+    public function getLogisticsRequiresChoiceProperty(): bool
     {
-        if ($this->delivery_kind !== CompanyDeliveryMethod::TYPE_PICKUP && $this->delivery_kind !== CompanyDeliveryMethod::TYPE_DELIVERY) {
+        return $this->hasPickupDeliveryMethods && $this->hasHomeDeliveryMethods;
+    }
+
+    /**
+     * Zonas de delivery activas (todas las rutas) para el selector con costo.
+     */
+    public function getShipZonesCatalogProperty(): Collection
+    {
+        return DeliveryZone::query()
+            ->where('is_active', true)
+            ->whereHas('deliveryMethod', function ($q) {
+                $q->where('company_id', $this->companyId)
+                    ->where('is_active', true)
+                    ->where('type', CompanyDeliveryMethod::TYPE_DELIVERY);
+            })
+            ->with(['deliveryMethod:id,name'])
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function getPickupMethodsCatalogProperty(): Collection
+    {
+        if ($this->logistics_mode !== 'schedule') {
             return collect();
         }
 
         return CompanyDeliveryMethod::query()
             ->where('company_id', $this->companyId)
             ->where('is_active', true)
-            ->where('type', $this->delivery_kind)
+            ->where('type', CompanyDeliveryMethod::TYPE_PICKUP)
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
@@ -197,8 +267,6 @@ class CatalogCheckout extends Component
     }
 
     /**
-     * Vista previa del total con descuento por método de pago (misma fórmula que CatalogOrderCheckoutService).
-     *
      * @return array{subtotal: float, discount_percent: float, discount_amount: float, final: float, has_payment_discount: bool}
      */
     public function getPaymentDiscountPreviewProperty(): array
@@ -280,8 +348,7 @@ class CatalogCheckout extends Component
                 return collect();
             }
 
-            // Con «Otro» se listan las franjas de todas las zonas del método (referencia logística).
-            if ($this->delivery_zone_selection === 'custom') {
+            if ($this->logistics_mode === 'ship' && $this->ship_zone_choice === 'other') {
                 $q->whereIn('delivery_zone_id', $zones->pluck('id')->all())->orderBy('delivery_zone_id');
             } elseif ($this->delivery_zone_id) {
                 $q->where('delivery_zone_id', $this->delivery_zone_id);
@@ -293,22 +360,39 @@ class CatalogCheckout extends Component
         return $q->get()->filter(fn (DeliverySlot $s) => $s->hasCapacity())->values();
     }
 
-    /** Indica si el cliente describe la zona manualmente («Otro» o método sin zonas listadas). */
-    public function getIsCustomDeliveryZoneProperty(): bool
+    /**
+     * Fechas (Y-m-d) disponibles según franjas con cupo para la zona o ruta actual.
+     *
+     * @return array<int, string>
+     */
+    public function getShipSlotDateOptionsProperty(): array
     {
-        if ($this->delivery_kind !== CompanyDeliveryMethod::TYPE_DELIVERY || ! $this->company_delivery_method_id) {
-            return false;
-        }
-        $method = CompanyDeliveryMethod::query()->find($this->company_delivery_method_id);
-        if (! $method || ! $method->isDelivery()) {
-            return false;
+        if ($this->logistics_mode !== 'ship' || $this->ship_zone_choice === 'other' || ! $this->delivery_zone_id) {
+            return [];
         }
 
-        if ($this->delivery_zone_selection === 'custom') {
-            return true;
+        $dates = $this->deliverySlots
+            ->map(fn (DeliverySlot $s) => $s->resolveNextScheduledDeliveryDate()->format('Y-m-d'))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        return $dates;
+    }
+
+    /**
+     * Franjas para la fecha elegida (delivery con zona).
+     */
+    public function getShipSlotsForSelectedDateProperty(): Collection
+    {
+        if ($this->logistics_mode !== 'ship' || $this->ship_zone_choice === 'other' || $this->ship_slot_date === '' || ! $this->delivery_zone_id) {
+            return collect();
         }
 
-        return $this->zones->isEmpty();
+        return $this->deliverySlots->filter(function (DeliverySlot $s) {
+            return $s->resolveNextScheduledDeliveryDate()->format('Y-m-d') === $this->ship_slot_date;
+        })->values();
     }
 
     public function submit(Request $request, CatalogCartService $cartService, CatalogOrderCheckoutService $checkoutService): void
@@ -320,7 +404,7 @@ class CatalogCheckout extends Component
             'customer_name' => 'required|string|max:255',
             'customer_phone' => ['required', 'digits:11'],
             'notes' => 'nullable|string|max:2000',
-            'delivery_kind' => 'required|in:pickup,delivery',
+            'logistics_mode' => 'required|in:schedule,ship',
             'company_payment_method_id' => 'required|integer|exists:company_payment_methods,id',
             'company_delivery_method_id' => 'required|integer|exists:company_delivery_methods,id',
             'delivery_zone_id' => 'nullable|integer|exists:delivery_zones,id',
@@ -329,7 +413,7 @@ class CatalogCheckout extends Component
         ], [
             'customer_phone.required' => 'El teléfono es obligatorio',
             'customer_phone.digits' => 'El teléfono debe tener exactamente 11 dígitos numéricos (ej: 04148965789).',
-            'delivery_kind.required' => 'Elegí si preferís retiro en punto o delivery.',
+            'logistics_mode.required' => 'Elegí cómo querés recibir tu pedido.',
         ]);
 
         $dm = CompanyDeliveryMethod::query()
@@ -344,14 +428,35 @@ class CatalogCheckout extends Component
             return;
         }
 
-        $expectedKind = $dm->isPickup() ? CompanyDeliveryMethod::TYPE_PICKUP : CompanyDeliveryMethod::TYPE_DELIVERY;
-        if ($this->delivery_kind !== $expectedKind) {
-            $this->addError('delivery_kind', 'El método elegido no coincide con retiro / delivery seleccionados.');
+        if ($this->logistics_mode === 'schedule') {
+            if (! $dm->isPickup()) {
+                $this->addError('logistics_mode', 'En «Pautar entrega» debés elegir un punto de la lista.');
 
-            return;
+                return;
+            }
+        } elseif ($this->logistics_mode === 'ship') {
+            if (! $dm->isDelivery()) {
+                $this->addError('logistics_mode', 'En «Enviar por delivery» debés elegir una zona o «Otro lugar».');
+
+                return;
+            }
+            if ($this->ship_zone_choice === '') {
+                $this->addError('ship_zone_choice', 'Elegí zona de envío u «Otro lugar».');
+
+                return;
+            }
+            if ($this->ship_zone_choice !== 'other') {
+                if (! preg_match('/^z:(\d+)$/', $this->ship_zone_choice, $sm) || (int) $sm[1] !== (int) $this->delivery_zone_id) {
+                    $this->addError('ship_zone_choice', 'Elegí una zona de envío válida.');
+
+                    return;
+                }
+            }
         }
 
         $customPayload = null;
+        $catalogShipNoSlot = false;
+        $catalogRequestedDate = null;
 
         if ($dm->isPickup()) {
             $this->delivery_zone_selection = '';
@@ -359,53 +464,82 @@ class CatalogCheckout extends Component
             $this->delivery_zone_id = null;
             $customPayload = null;
         } elseif ($dm->isDelivery()) {
-            $zonesCount = DeliveryZone::query()
-                ->where('company_delivery_method_id', $dm->id)
-                ->where('is_active', true)
-                ->count();
-
-            $isExplicitCustom = ($this->delivery_zone_selection === 'custom');
-
-            if ($zonesCount > 0 && $isExplicitCustom) {
+            if ($this->ship_zone_choice === 'other') {
                 $this->validate([
-                    'delivery_custom_zone' => 'required|string|min:5|max:2000',
+                    'ship_other_place_name' => 'required|string|min:3|max:500',
+                    'ship_other_date' => ['required', 'date_format:Y-m-d'],
+                    'ship_other_time' => ['required', 'regex:/^\d{1,2}:\d{2}(:\d{2})?$/'],
                 ], [
-                    'delivery_custom_zone.required' => 'Describí la zona o dirección donde querés el delivery.',
+                    'ship_other_place_name.required' => 'Indicá el nombre o referencia del lugar de entrega.',
+                    'ship_other_date.required' => 'Elegí la fecha deseada para el delivery.',
+                    'ship_other_time.required' => 'Indicá la hora deseada.',
                 ]);
                 $this->delivery_zone_id = null;
-                $customPayload = trim($this->delivery_custom_zone);
-            } elseif ($zonesCount > 0) {
-                $this->validate([
-                    'delivery_zone_id' => 'required|integer|exists:delivery_zones,id',
-                ]);
-                $customPayload = null;
+                $time = $this->ship_other_time;
+                $customPayload = trim($this->ship_other_place_name)
+                    ."\n".'Fecha deseada: '.$this->ship_other_date
+                    ."\n".'Hora deseada: '.$time;
+                $catalogShipNoSlot = true;
+                $catalogRequestedDate = $this->ship_other_date;
             } else {
-                // Delivery sin zonas configuradas → solo texto
-                $this->validate([
-                    'delivery_custom_zone' => 'required|string|min:5|max:2000',
-                ]);
-                $this->delivery_zone_id = null;
-                $customPayload = trim($this->delivery_custom_zone);
-            }
-
-            // Coherencia: si seleccionó lista, zona debe pertenecer al método
-            if ($customPayload === null && $this->delivery_zone_id) {
-                $ok = DeliveryZone::query()
-                    ->whereKey($this->delivery_zone_id)
+                $zonesCount = DeliveryZone::query()
                     ->where('company_delivery_method_id', $dm->id)
                     ->where('is_active', true)
-                    ->exists();
-                if (! $ok) {
-                    $this->addError('delivery_zone_id', 'La zona no es válida para este método.');
+                    ->count();
 
-                    return;
+                if ($zonesCount > 0) {
+                    $this->validate([
+                        'delivery_zone_id' => 'required|integer|exists:delivery_zones,id',
+                    ]);
+                    $ok = DeliveryZone::query()
+                        ->whereKey($this->delivery_zone_id)
+                        ->where('company_delivery_method_id', $dm->id)
+                        ->where('is_active', true)
+                        ->exists();
+                    if (! $ok) {
+                        $this->addError('delivery_zone_id', 'La zona no es válida para esta ruta.');
+
+                        return;
+                    }
+                    $customPayload = null;
+
+                    if ($this->deliverySlots->isEmpty()) {
+                        $this->addError('delivery_slot_id', 'No hay horarios con cupo para esta zona en este momento.');
+
+                        return;
+                    }
+
+                    $slotDates = $this->shipSlotDateOptions;
+                    if ($slotDates !== []) {
+                        $this->validate([
+                            'ship_slot_date' => ['required', 'date_format:Y-m-d', Rule::in($slotDates)],
+                            'delivery_slot_id' => 'required|integer|exists:delivery_slots,id',
+                        ], [
+                            'ship_slot_date.required' => 'Elegí la fecha de entrega.',
+                            'delivery_slot_id.required' => 'Elegí el horario de entrega.',
+                        ]);
+                        $allowedIds = $this->shipSlotsForSelectedDate->pluck('id')->map(fn ($id) => (int) $id)->all();
+                        if (! in_array((int) $this->delivery_slot_id, $allowedIds, true)) {
+                            $this->addError('delivery_slot_id', 'El horario no corresponde a la fecha elegida.');
+
+                            return;
+                        }
+                    } else {
+                        $this->validate([
+                            'delivery_slot_id' => 'required|integer|exists:delivery_slots,id',
+                        ]);
+                    }
+                } else {
+                    $this->validate([
+                        'delivery_custom_zone' => 'required|string|min:5|max:2000',
+                    ]);
+                    $this->delivery_zone_id = null;
+                    $customPayload = trim($this->delivery_custom_zone);
                 }
             }
-
-            unset($zonesCount, $isExplicitCustom);
         }
 
-        if ($this->deliverySlots->isNotEmpty()) {
+        if ($dm->isPickup() && $this->deliverySlots->isNotEmpty()) {
             $this->validate([
                 'delivery_slot_id' => 'required|integer|exists:delivery_slots,id',
             ]);
@@ -423,6 +557,8 @@ class CatalogCheckout extends Component
             'delivery_zone_id' => $dm->isDelivery() ? $this->delivery_zone_id : null,
             'delivery_custom_location' => $dm->isDelivery() ? ($customPayload ?? null) : null,
             'delivery_slot_id' => $this->delivery_slot_id,
+            'catalog_ship_no_slot' => $catalogShipNoSlot,
+            'catalog_requested_delivery_date' => $catalogRequestedDate,
         ];
 
         $order = $checkoutService->checkout($company, $cart, $payload);
