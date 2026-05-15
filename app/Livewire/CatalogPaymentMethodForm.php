@@ -18,8 +18,6 @@ class CatalogPaymentMethodForm extends Component
 
     public string $discountPercent = '0';
 
-    public int $sortOrder = 0;
-
     public bool $isActive = true;
 
     protected function entitlement(): PlanEntitlementService
@@ -49,7 +47,6 @@ class CatalogPaymentMethodForm extends Component
             $this->name = $row->name;
             $this->instructions = (string) ($row->instructions ?? '');
             $this->discountPercent = (string) $row->discount_percent;
-            $this->sortOrder = (int) $row->sort_order;
             $this->isActive = (bool) $row->is_active;
 
             return;
@@ -67,7 +64,6 @@ class CatalogPaymentMethodForm extends Component
             'name' => 'required|string|max:255',
             'instructions' => 'nullable|string|max:5000',
             'discountPercent' => 'required|numeric|min:0|max:100',
-            'sortOrder' => 'required|integer|min:0|max:65535',
             'isActive' => 'boolean',
         ]);
 
@@ -78,7 +74,6 @@ class CatalogPaymentMethodForm extends Component
             'name' => $this->name,
             'instructions' => $this->instructions !== '' ? $this->instructions : null,
             'discount_percent' => $this->discountPercent,
-            'sort_order' => $this->sortOrder,
             'is_active' => $this->isActive,
         ];
 

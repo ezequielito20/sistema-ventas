@@ -18,18 +18,11 @@
     <div class="ui-panel">
         <div class="ui-panel__body">
             <form wire:submit="save" class="space-y-6">
-                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <div class="md:col-span-2">
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div>
                         <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Nombre <span class="text-rose-400">*</span></label>
                         <input type="text" wire:model.blur="name" class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
                         @error('name')
-                            <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Orden</label>
-                        <input type="number" wire:model.blur="sortOrder" class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
-                        @error('sortOrder')
                             <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                         @enderror
                     </div>
@@ -44,7 +37,7 @@
                         <input type="checkbox" wire:model="isActive" id="pm-active" class="rounded border-slate-600 bg-slate-900" />
                         <label for="pm-active" class="text-sm text-slate-300">Activo (visible en checkout)</label>
                     </div>
-                    <div class="md:col-span-3">
+                    <div class="md:col-span-2">
                         <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Datos para el cliente (instrucciones)</label>
                         <textarea wire:model.blur="instructions" rows="4" class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100"></textarea>
                         @error('instructions')
