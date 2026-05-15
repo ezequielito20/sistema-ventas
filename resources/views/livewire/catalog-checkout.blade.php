@@ -157,19 +157,21 @@
                         </div>
 
                         @if ($ship_zone_choice !== '' && str_starts_with($ship_zone_choice, 'z:') && $company_delivery_method_id && $delivery_zone_id)
-                            <div>
-                                <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Fecha del delivery') }}</label>
-                                <input type="date" wire:model="ship_zone_calendar_date"
-                                       class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                                @error('ship_zone_calendar_date') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="min-w-0">
+                                    <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Fecha del delivery') }}</label>
+                                    <input type="date" wire:model="ship_zone_calendar_date"
+                                           class="mt-1 w-full min-w-0 rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                    @error('ship_zone_calendar_date') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="min-w-0">
+                                    <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Hora del delivery') }}</label>
+                                    <input type="time" wire:model="ship_zone_calendar_time"
+                                           class="mt-1 w-full min-w-0 rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                    @error('ship_zone_calendar_time') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Hora del delivery') }}</label>
-                                <input type="time" wire:model="ship_zone_calendar_time"
-                                       class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                                <p class="mt-1 text-[0.65rem] text-dv-outline">{{ __('Elegí la fecha y hora que te convengan; la tienda coordinará el envío según su operación en la zona.') }}</p>
-                                @error('ship_zone_calendar_time') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
-                            </div>
+                            <p class="mt-2 text-[0.65rem] text-dv-outline">{{ __('Elegí la fecha y hora que te convengan; la tienda coordinará el envío según su operación en la zona.') }}</p>
                         @endif
 
                         @if ($ship_zone_choice === 'other')
@@ -181,17 +183,19 @@
                                            placeholder="{{ __('Ej: urbanización, torre, referencia…') }}">
                                     @error('ship_other_place_name') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Fecha deseada') }}</label>
-                                    <input type="date" wire:model="ship_other_date"
-                                           class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                                    @error('ship_other_date') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Hora deseada') }}</label>
-                                    <input type="time" wire:model="ship_other_time"
-                                           class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                                    @error('ship_other_time') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="min-w-0">
+                                        <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Fecha deseada') }}</label>
+                                        <input type="date" wire:model="ship_other_date"
+                                               class="mt-1 w-full min-w-0 rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                        @error('ship_other_date') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="min-w-0">
+                                        <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Hora deseada') }}</label>
+                                        <input type="time" wire:model="ship_other_time"
+                                               class="mt-1 w-full min-w-0 rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                        @error('ship_other_time') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                    </div>
                                 </div>
                                 <div class="rounded-lg border border-amber-500/25 bg-amber-950/35 px-3 py-2 text-[0.7rem] leading-relaxed text-amber-100/95">
                                     {{ __('El costo extra de envío no se calcula ahora: la tienda te lo informará. En el resumen del pedido verás el monto de productos más «+ envío» hasta que confirmen el cargo.') }}
