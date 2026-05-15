@@ -16,6 +16,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\PlanEntitlementService;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -23,13 +24,14 @@ use Illuminate\Validation\ValidationException;
 class CatalogOrderCheckoutService
 {
     public function __construct(
-        protected PlanEntitlementService $planEntitlementService
+        protected PlanEntitlementService $planEntitlementService,
+        protected CatalogOrderSubmitGuard $submitGuard,
     ) {}
 
     /**
      * @param  array<string, mixed>  $data
      */
-    public function checkout(Company $company, Cart $cart, array $data): Order
+    public function checkout(Company $company, Cart $cart, array $data, Request $request): Order
     {
         if (! $this->planEntitlementService->companyHasModule($company, 'orders')) {
             throw ValidationException::withMessages([
@@ -55,6 +57,8 @@ class CatalogOrderCheckoutService
             ]
         )->validate();
         $data['customer_phone'] = $phoneDigits;
+
+        $this->submitGuard->assertIpWithinLimit($request, $company);
 
         /** @var CompanyPaymentMethod|null $paymentMethod */
         $paymentMethod = CompanyPaymentMethod::query()
@@ -229,7 +233,9 @@ class CatalogOrderCheckoutService
             ]);
         }
 
-        return DB::transaction(function () use ($company, $cart, $data, $paymentMethod, $deliveryMethod, $zone, $slot, $rate, $customLoc, $catalogShipNoSlot, $catalogRequestedDeliveryDate, $catalogScheduledDeliveryDate, $catalogScheduledDeliveryTime, $catalogZoneFlexibleDt): Order {
+        return DB::transaction(function () use ($company, $cart, $data, $request, $paymentMethod, $deliveryMethod, $zone, $slot, $rate, $customLoc, $catalogShipNoSlot, $catalogRequestedDeliveryDate, $catalogScheduledDeliveryDate, $catalogScheduledDeliveryTime, $catalogZoneFlexibleDt): Order {
+            $this->submitGuard->assertPendingPhoneLimit($company, $data['customer_phone']);
+
             $lines = [];
             $subtotal = 0.0;
 
@@ -392,6 +398,8 @@ class CatalogOrderCheckoutService
             $cart->items()->delete();
 
             $this->dispatchNewOrderNotifications($order);
+
+            $this->submitGuard->recordSuccessfulSubmit($request, $company);
 
             return $order->load('items');
         });
