@@ -37,6 +37,7 @@ class OrderSummaryController extends Controller
 
         $pdf = Pdf::loadView('pdf.orders.summary', [
             'order' => $order,
+            'company' => $order->company,
             'emittedAt' => now(),
         ]);
 
