@@ -3,6 +3,7 @@
 namespace App\Models\Home;
 
 use App\Models\Company;
+use App\Services\ImageUrlService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -88,5 +89,10 @@ class HomeProduct extends Model
     public function getEstimatedTotalAttribute(): float
     {
         return $this->to_buy * (float) $this->purchase_price;
+    }
+
+    public function getImageUrlAttribute(): string
+    {
+        return ImageUrlService::getImageUrl($this->image);
     }
 }

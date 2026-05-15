@@ -29,9 +29,18 @@ class HomeProductsIndex extends Component
         'perPage' => ['except' => 12],
     ];
 
+    protected $listeners = [
+        'product-saved' => '$refresh',
+    ];
+
     public function mount(): void
     {
         Gate::authorize('home.inventory.index');
+    }
+
+    public function editProduct(int $id): void
+    {
+        $this->dispatch('edit-product', id: $id)->to('home.home-product-form');
     }
 
     public function updated($name): void

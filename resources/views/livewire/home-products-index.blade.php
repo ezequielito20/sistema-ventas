@@ -48,7 +48,7 @@
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <div class="h-10 w-10 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 @if($product->image)
-                                    <img src="{{ $product->image }}" class="h-full w-full object-cover">
+                                    <img src="{{ $product->image_url }}" class="h-full w-full object-cover">
                                 @else
                                     <i class="fas fa-box text-slate-400"></i>
                                 @endif
@@ -71,7 +71,7 @@
                             </div>
                             <div class="flex gap-1">
                                 @if($permissions['edit'])
-                                    <button wire:click="$dispatch('edit-product', { id: {{ $product->id }} })"
+                                    <button wire:click="editProduct({{ $product->id }})"
                                         class="p-1.5 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-slate-700">
                                         <i class="fas fa-edit text-xs"></i>
                                     </button>

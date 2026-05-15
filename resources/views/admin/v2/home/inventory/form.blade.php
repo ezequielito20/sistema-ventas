@@ -85,15 +85,37 @@
                     </div>
 
                     <div>
-                        <label for="image" class="block text-sm font-medium text-slate-300">Imagen</label>
-                        <input type="file" id="image" wire:model="image" accept="image/*"
-                            class="mt-1 block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-blue-500/20 file:text-blue-400 hover:file:bg-blue-500/30">
-                        @if($imagePreview && !$image)
-                            <img src="{{ $imagePreview }}" class="mt-2 h-20 w-20 object-cover rounded-lg">
-                        @endif
-                        @if($image)
-                            <img src="{{ $image->temporaryUrl() }}" class="mt-2 h-20 w-20 object-cover rounded-lg">
-                        @endif
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Imagen</label>
+                        <div class="flex gap-2">
+                            <label class="flex-1 cursor-pointer text-center px-3 py-2.5 rounded-lg bg-purple-600/20 text-purple-300 text-sm hover:bg-purple-600/30 border border-purple-500/30 transition-colors">
+                                <i class="fas fa-camera mr-1.5"></i> Cámara
+                                <input type="file" accept="image/*" capture="environment" wire:model="image" class="hidden">
+                            </label>
+                            <label class="flex-1 cursor-pointer text-center px-3 py-2.5 rounded-lg bg-blue-600/20 text-blue-300 text-sm hover:bg-blue-600/30 border border-blue-500/30 transition-colors">
+                                <i class="fas fa-folder-open mr-1.5"></i> Subir
+                                <input type="file" accept="image/*" wire:model="image" class="hidden">
+                            </label>
+                        </div>
+                        <div class="mt-2 flex items-center gap-3">
+                            @if($imagePreview && !$image)
+                                <div class="relative">
+                                    <img src="{{ $imagePreview }}" class="h-20 w-20 object-cover rounded-lg border border-slate-600">
+                                    <button type="button" wire:click="$set('imagePreview', null)"
+                                        class="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-slate-700 text-slate-300 text-xs flex items-center justify-center hover:bg-slate-600">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            @endif
+                            @if($image)
+                                <div class="relative">
+                                    <img src="{{ $image->temporaryUrl() }}" class="h-20 w-20 object-cover rounded-lg border border-slate-600">
+                                    <button type="button" wire:click="$set('image', null)"
+                                        class="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-slate-700 text-slate-300 text-xs flex items-center justify-center hover:bg-slate-600">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="flex justify-end gap-3 pt-2">

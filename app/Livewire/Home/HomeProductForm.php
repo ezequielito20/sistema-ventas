@@ -44,7 +44,7 @@ class HomeProductForm extends Component
 
     protected $listeners = [
         'open-create-product' => 'openCreate',
-        'edit-product' => 'openEditFromEvent',
+        'edit-product' => 'openEdit',
     ];
 
     public function mount(): void
@@ -67,27 +67,39 @@ class HomeProductForm extends Component
         }
     }
 
-    public function openEditFromEvent(array $params): void
+    public function openEditFromEvent($params): void
     {
-        $this->openEdit((int) ($params['id'] ?? 0));
+        $id = is_array($params) ? (int) ($params['id'] ?? 0) : (int) $params;
+        $this->openEdit($id);
     }
 
     protected function rules(): array
     {
-        $uniqueRule = 'nullable|string|max:50|unique:home_products,barcode,' . ($this->productId ?: 'NULL') . ',id,company_id,' . Auth::user()->company_id;
-
-        return [
+        $barcode = trim($this->barcode);
+        $rules = [
             'name' => 'required|string|max:255',
             'brand' => 'nullable|string|max:255',
             'category' => 'required|string|in:' . implode(',', HomeProductCategories::ALL),
-            'quantity' => 'required|integer|min:0',
-            'min_quantity' => 'required|integer|min:0',
-            'max_quantity' => 'nullable|integer|min:0|gte:min_quantity',
-            'unit' => 'required|string|in:unidad,kg,g,ml,l,paquete,caja,bolsa,rollo,par',
-            'purchase_price' => 'required|numeric|min:0',
-            'barcode' => $uniqueRule,
+            'min_quantity' => 'required|integer|min:1',
+            'quantity' => 'nullable|integer|min:0',
+            'max_quantity' => 'nullable|integer|min:0',
+            'unit' => 'nullable|string|in:unidad,kg,g,ml,l,paquete,caja,bolsa,rollo,par',
+            'purchase_price' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|max:5120',
         ];
+
+        if ($barcode !== '') {
+            $rules['barcode'] = [
+                'string', 'max:50',
+                \Illuminate\Validation\Rule::unique('home_products', 'barcode')
+                    ->where('company_id', Auth::user()->company_id)
+                    ->ignore($this->productId),
+            ];
+        } else {
+            $rules['barcode'] = 'nullable';
+        }
+
+        return $rules;
     }
 
     public function openCreate(): void
@@ -97,8 +109,12 @@ class HomeProductForm extends Component
         $this->showModal = true;
     }
 
-    public function openEdit(int $id): void
+    public function openEdit(int $id = 0): void
     {
+        if ($id <= 0) {
+            return;
+        }
+
         Gate::authorize('home.inventory.edit');
 
         $product = HomeProduct::where('company_id', Auth::user()->company_id)->findOrFail($id);
@@ -123,6 +139,17 @@ class HomeProductForm extends Component
         $data = $this->validate();
 
         $companyId = (int) Auth::user()->company_id;
+
+        // Convertir barcode vacío a null para evitar unique constraint con string vacío
+        if (isset($data['barcode']) && trim($data['barcode']) === '') {
+            $data['barcode'] = null;
+        }
+
+        // Asignar valores por defecto para campos opcionales
+        $data['quantity'] = (int) ($data['quantity'] ?? 0);
+        $data['min_quantity'] = (int) ($data['min_quantity'] ?? 1);
+        $data['unit'] = $data['unit'] ?? 'unidad';
+        $data['purchase_price'] = (float) ($data['purchase_price'] ?? 0);
 
         if ($this->image) {
             $data['image'] = $this->image->store("home/products/{$companyId}", 'public');
