@@ -205,7 +205,7 @@
                             <tbody>
                                 @foreach ($roles as $role)
                                     @php
-                                        $isSys = in_array($role->name, ['admin', 'user', 'superadmin'], true);
+                                        $isSys = $role->tenantPermissionSyncLocked();
                                     @endphp
                                     <tr wire:key="role-row-{{ $role->id }}">
                                         @if ($selectionMode)
@@ -283,7 +283,7 @@
                 <div class="space-y-3 p-4 md:hidden">
                     @foreach ($roles as $role)
                         @php
-                            $isSys = in_array($role->name, ['admin', 'user', 'superadmin'], true);
+                            $isSys = $role->tenantPermissionSyncLocked();
                         @endphp
                         <div class="rounded-xl border border-slate-600/50 bg-slate-950/40 p-4" wire:key="role-card-{{ $role->id }}">
                             @if ($selectionMode)

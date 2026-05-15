@@ -288,10 +288,10 @@ Route::prefix('admin/debt-payments')->middleware(['auth'])->group(function () {
 
 Route::get('/admin/order-catalog-settings', fn () => view('admin.order-catalog-settings.index'))
     ->name('admin.order-catalog-settings.index')
-    ->middleware(['auth', 'can:orders.settings']);
+    ->middleware(['auth', 'tenant.orders:configure']);
 
 // Rutas para manejo de pedidos (Admin)
-Route::prefix('admin/orders')->middleware(['auth', 'can:orders.index'])->group(function () {
+Route::prefix('admin/orders')->middleware(['auth', 'tenant.orders:browse'])->group(function () {
     Route::get('/', [OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
     Route::get('/{order}/pdf', [OrderController::class, 'pdf'])->middleware('can:orders.update')->name('admin.orders.pdf');

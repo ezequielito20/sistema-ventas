@@ -4,21 +4,22 @@ namespace App\Policies;
 
 use App\Models\Order;
 use App\Models\User;
+use App\Services\PlanEntitlementService;
 
 class OrderPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('orders.index');
+        return app(PlanEntitlementService::class)->tenantUserMayBrowseOrdersConsole($user);
     }
 
     public function view(User $user, Order $order): bool
     {
-        if (! $user->can('orders.index')) {
+        if ((int) $user->company_id !== (int) $order->company_id) {
             return false;
         }
 
-        return (int) $user->company_id === (int) $order->company_id;
+        return app(PlanEntitlementService::class)->tenantUserMayBrowseOrdersConsole($user);
     }
 
     public function update(User $user, Order $order): bool

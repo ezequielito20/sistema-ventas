@@ -70,7 +70,66 @@ class PlanEntitlementService
             return true;
         }
 
+        if ($moduleKey === 'orders') {
+            return $this->planFeaturesGrantOrdersCapability($features);
+        }
+
         return in_array($moduleKey, $features, true);
+    }
+
+    /**
+     * Pedidos y checkout del catálogo: el contrato suele exponerlos como «orders» o dentro del catálogo público («catalog»).
+     *
+     * @param  list<string>  $features
+     */
+    private function planFeaturesGrantOrdersCapability(array $features): bool
+    {
+        return in_array('orders', $features, true)
+            || in_array('catalog', $features, true);
+    }
+
+    /**
+     * Gestión típica de roles en tenant cuando todavía faltan permisos granular orders.* en el perfil Spatie.
+     */
+    public function tenantUserOrdersAdminFallback(?User $user): bool
+    {
+        if ($user === null) {
+            return false;
+        }
+
+        return $user->can('roles.assign.permissions') || $user->can('roles.permissions');
+    }
+
+    public function tenantUserMayBrowseOrdersConsole(?User $user): bool
+    {
+        if ($user === null || ! $this->userCanAccessModule($user, 'orders')) {
+            return false;
+        }
+
+        if ($user->can('orders.index')) {
+            return true;
+        }
+
+        return $this->tenantUserOrdersAdminFallback($user);
+    }
+
+    public function tenantUserMayConfigureOrdersConsole(?User $user): bool
+    {
+        if ($user === null || ! $this->userCanAccessModule($user, 'orders')) {
+            return false;
+        }
+
+        if ($user->can('orders.settings')) {
+            return true;
+        }
+
+        return $this->tenantUserOrdersAdminFallback($user);
+    }
+
+    public function tenantUserMaySeeOrdersSidebar(?User $user): bool
+    {
+        return $this->tenantUserMayBrowseOrdersConsole($user)
+            || $this->tenantUserMayConfigureOrdersConsole($user);
     }
 
     /**
@@ -334,6 +393,10 @@ class PlanEntitlementService
         $features = $plan->features ?? [];
         if ($features === [] || $features === null) {
             return true;
+        }
+
+        if ($moduleKey === 'orders') {
+            return $this->planFeaturesGrantOrdersCapability($features);
         }
 
         return in_array($moduleKey, $features, true);

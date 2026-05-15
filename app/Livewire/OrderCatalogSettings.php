@@ -7,9 +7,9 @@ use App\Models\CompanyPaymentMethod;
 use App\Models\DeliverySlot;
 use App\Models\DeliveryZone;
 use App\Models\Order;
+use App\Services\PlanEntitlementService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 class OrderCatalogSettings extends Component
@@ -73,9 +73,17 @@ class OrderCatalogSettings extends Component
 
     public bool $slActive = true;
 
+    protected function authorizeOrderCatalogSettings(): void
+    {
+        abort_unless(
+            app(PlanEntitlementService::class)->tenantUserMayConfigureOrdersConsole(Auth::user()),
+            403
+        );
+    }
+
     public function mount(): void
     {
-        Gate::authorize('orders.settings');
+        $this->authorizeOrderCatalogSettings();
         $this->companyId = (int) Auth::user()->company_id;
 
         $first = CompanyDeliveryMethod::query()
@@ -191,7 +199,7 @@ class OrderCatalogSettings extends Component
 
     public function savePayment(): void
     {
-        Gate::authorize('orders.settings');
+        $this->authorizeOrderCatalogSettings();
         $this->validate([
             'payName' => 'required|string|max:255',
             'payInstructions' => 'nullable|string|max:5000',
@@ -224,7 +232,7 @@ class OrderCatalogSettings extends Component
 
     public function deletePayment(int $id): void
     {
-        Gate::authorize('orders.settings');
+        $this->authorizeOrderCatalogSettings();
         CompanyPaymentMethod::query()
             ->where('company_id', $this->companyId)
             ->whereKey($id)
@@ -260,7 +268,7 @@ class OrderCatalogSettings extends Component
 
     public function saveDelivery(): void
     {
-        Gate::authorize('orders.settings');
+        $this->authorizeOrderCatalogSettings();
         $this->validate([
             'delType' => 'required|in:'.CompanyDeliveryMethod::TYPE_PICKUP.','.CompanyDeliveryMethod::TYPE_DELIVERY,
             'delName' => 'required|string|max:255',
@@ -306,7 +314,7 @@ class OrderCatalogSettings extends Component
 
     public function deleteDelivery(int $id): void
     {
-        Gate::authorize('orders.settings');
+        $this->authorizeOrderCatalogSettings();
         if (Order::query()->where('company_delivery_method_id', $id)->exists()) {
             session()->flash('error', 'No se puede eliminar: hay pedidos que usan este método. Desactivalo en su lugar.');
 
@@ -342,7 +350,7 @@ class OrderCatalogSettings extends Component
 
     public function saveZone(): void
     {
-        Gate::authorize('orders.settings');
+        $this->authorizeOrderCatalogSettings();
         $method = $this->resolveDeliveryMethod($this->zoneFilterMethodId, requireDelivery: true);
         if (! $method) {
             session()->flash('error', 'Elegí un método de tipo delivery para las zonas.');
@@ -378,7 +386,7 @@ class OrderCatalogSettings extends Component
 
     public function deleteZone(int $id): void
     {
-        Gate::authorize('orders.settings');
+        $this->authorizeOrderCatalogSettings();
         if (Order::query()->where('delivery_zone_id', $id)->exists()) {
             session()->flash('error', 'No se puede eliminar: hay pedidos con esta zona.');
 
@@ -419,7 +427,7 @@ class OrderCatalogSettings extends Component
 
     public function saveSlot(): void
     {
-        Gate::authorize('orders.settings');
+        $this->authorizeOrderCatalogSettings();
         $method = $this->resolveDeliveryMethod($this->slotFilterMethodId, requireDelivery: false);
         if (! $method) {
             session()->flash('error', 'Elegí un método de entrega para la franja.');
@@ -483,7 +491,7 @@ class OrderCatalogSettings extends Component
 
     public function deleteSlot(int $id): void
     {
-        Gate::authorize('orders.settings');
+        $this->authorizeOrderCatalogSettings();
         $slot = DeliverySlot::query()
             ->where('company_id', $this->companyId)
             ->whereKey($id)

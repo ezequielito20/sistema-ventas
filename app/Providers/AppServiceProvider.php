@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Order;
+use App\Models\User;
 use App\Services\PlanEntitlementService;
 use Illuminate\Foundation\Vite;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -38,6 +40,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /*
+         * Super admin (usuario plataforma / flag y rol «super-admin»): acceso ilimitado a permisos
+         * y políticas; evita ítems de menú o rutas con middleware can:* bloqueadas por roles Spatie incompletos.
+         */
+        Gate::before(function ($user, string $ability) {
+            if ($user instanceof User && $user->isSuperAdmin()) {
+                return true;
+            }
+
+            return null;
+        });
+
         Route::bind('order', function (string $value): Order {
             $user = Auth::user();
             abort_unless($user, 403);

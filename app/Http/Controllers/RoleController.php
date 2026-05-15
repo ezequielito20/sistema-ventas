@@ -179,13 +179,12 @@ class RoleController extends Controller
                 ], 404);
             }
 
-            // Verificar si es un rol del sistema
-            $systemRoles = ['admin', 'user', 'superadmin', 'administrator', 'root', 'administrador'];
-            if (in_array($role->name, $systemRoles)) {
+            $guard = app(RoleService::class)->deletionGuard($role);
+            if (! $guard['can_delete']) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'No se pueden eliminar roles del sistema ('.$role->name.')',
-                    'details' => ['error_type' => 'system_role', 'role_name' => $role->name],
+                    'message' => $guard['reason'] ? 'No se puede eliminar el rol: '.$guard['reason'] : 'No se puede eliminar este rol.',
+                    'details' => ['error_type' => 'delete_guard', 'role_name' => $role->name],
                 ], 403);
             }
 
@@ -257,7 +256,7 @@ class RoleController extends Controller
                     'updated_at' => $role->updated_at->format('d/m/Y H:i'),
                     'users_count' => $role->users->count(),
                     'permissions_count' => $role->permissions->count(),
-                    'is_system_role' => in_array($role->name, ['admin', 'user', 'superadmin', 'administrator', 'root', 'administrador']),
+                    'is_system_role' => $role->tenantPermissionSyncLocked(),
                 ],
             ]);
         } catch (\Exception $e) {
@@ -354,7 +353,7 @@ class RoleController extends Controller
                 'role_info' => [
                     'id' => $role->id,
                     'name' => $role->name,
-                    'is_system_role' => in_array($role->name, ['admin', 'superadmin', 'administrator', 'root', 'administrador']),
+                    'is_system_role' => $role->tenantPermissionSyncLocked(),
                 ],
             ]);
         } catch (\Exception $e) {
@@ -400,10 +399,8 @@ class RoleController extends Controller
                 throw new \Exception('Rol no encontrado (ID: '.$id.', Empresa: '.$this->company->id.')');
             }
 
-            // Verificar si es un rol del sistema
-            $systemRoles = ['admin', 'superadmin', 'administrator', 'root', 'administrador'];
-            if (in_array($role->name, $systemRoles)) {
-                throw new \Exception('No se pueden modificar los permisos de roles del sistema ('.$role->name.')');
+            if ($role->tenantPermissionSyncLocked()) {
+                throw new \Exception('No se pueden modificar los permisos de roles reservados de la plataforma ('.$role->name.')');
             }
 
             // Validar los permisos recibidos
@@ -453,7 +450,9 @@ class RoleController extends Controller
             $statusCode = 500;
             $errorMessage = $e->getMessage();
 
-            if (str_contains($errorMessage, 'roles del sistema')) {
+            if (
+                str_contains($errorMessage, 'roles del sistema')
+                || str_contains($errorMessage, 'roles reservados')) {
                 $statusCode = 403;
             } elseif (str_contains($errorMessage, 'no encontrado')) {
                 $statusCode = 404;

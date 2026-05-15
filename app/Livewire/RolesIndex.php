@@ -153,7 +153,7 @@ class RolesIndex extends Component
             'updated_at' => $role->updated_at->format('d/m/Y H:i'),
             'users_count' => $role->users->count(),
             'permissions_count' => $role->permissions->count(),
-            'is_system_role' => in_array($role->name, ['admin', 'user', 'superadmin'], true),
+            'is_system_role' => $role->tenantPermissionSyncLocked(),
         ];
 
         $this->showDetailModal = true;
@@ -175,9 +175,8 @@ class RolesIndex extends Component
             ->with('permissions')
             ->firstOrFail();
 
-        $systemRoles = ['admin', 'superadmin', 'administrator', 'root', 'administrador'];
-        if (in_array($role->name, $systemRoles, true)) {
-            $this->toast('No se pueden modificar los permisos de roles del sistema ('.$role->name.').', 'error');
+        if ($role->tenantPermissionSyncLocked()) {
+            $this->toast('No se pueden modificar los permisos de roles reservados de la plataforma ('.$role->name.').', 'error');
 
             return;
         }
@@ -223,9 +222,8 @@ class RolesIndex extends Component
                 ->where('id', $this->permissionsRoleId)
                 ->firstOrFail();
 
-            $systemRoles = ['admin', 'superadmin', 'administrator', 'root', 'administrador'];
-            if (in_array($role->name, $systemRoles, true)) {
-                throw new \Exception('No se pueden modificar los permisos de roles del sistema ('.$role->name.')');
+            if ($role->tenantPermissionSyncLocked()) {
+                throw new \Exception('No se pueden modificar los permisos de roles reservados de la plataforma ('.$role->name.')');
             }
 
             $ids = array_map('intval', $this->selectedPermissionIds);

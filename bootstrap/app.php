@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Middleware\EnsureCompanyIsActive;
+use App\Http\Middleware\EnsureSecurityQuestionsSetUp;
+use App\Http\Middleware\EnsureTenantCatalogOrdersSection;
+use App\Http\Middleware\EnsureUserIsSuperAdmin;
+use App\Http\Middleware\OptimizeResponseMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -11,13 +16,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->append(\App\Http\Middleware\OptimizeResponseMiddleware::class);
+        $middleware->append(OptimizeResponseMiddleware::class);
         $middleware->web(append: [
-            \App\Http\Middleware\EnsureSecurityQuestionsSetUp::class,
-            \App\Http\Middleware\EnsureCompanyIsActive::class,
+            EnsureSecurityQuestionsSetUp::class,
+            EnsureCompanyIsActive::class,
         ]);
         $middleware->alias([
-            'superadmin' => \App\Http\Middleware\EnsureUserIsSuperAdmin::class,
+            'superadmin' => EnsureUserIsSuperAdmin::class,
+            'tenant.orders' => EnsureTenantCatalogOrdersSection::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

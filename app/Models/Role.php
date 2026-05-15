@@ -92,6 +92,15 @@ class Role extends SpatieRole
     }
 
     /**
+     * El panel tenant no permite sincronizar permisos de roles que replican nombres
+     * reservados de Spatie/global (no confundir con el rol por empresa «administrador»).
+     */
+    public function tenantPermissionSyncLocked(): bool
+    {
+        return in_array(strtolower((string) $this->name), ['admin', 'user', 'superadmin', 'super-admin'], true);
+    }
+
+    /**
      * Check if the role is a system role.
      */
     public function isSystemRole(): bool
