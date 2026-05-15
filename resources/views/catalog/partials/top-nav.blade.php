@@ -4,8 +4,9 @@
     'searchable' => false,
 ])
 
-<nav class="fixed top-0 z-50 w-full overflow-x-hidden border-b border-white/5 bg-dv-surface/70 shadow-sm backdrop-blur-xl">
-    <div class="mx-auto flex h-16 min-h-[3.5rem] w-full max-w-dv min-w-0 items-center gap-2 overflow-x-hidden px-margin-mobile sm:h-20 sm:min-h-0 sm:gap-4 md:gap-6 md:px-margin-desktop">
+{{-- Sin overflow-x-hidden: en muchos navegadores fuerza overflow-y:auto y aparece scrollbar al abrir dropdowns debajo del header --}}
+<nav class="fixed top-0 z-50 w-full border-b border-white/5 bg-dv-surface/70 shadow-sm backdrop-blur-xl">
+    <div class="mx-auto flex h-16 min-h-[3.5rem] w-full max-w-dv min-w-0 items-center gap-2 px-margin-mobile sm:h-20 sm:min-h-0 sm:gap-4 md:gap-6 md:px-margin-desktop">
         <a href="{{ route('catalog.index', $company->slug) }}" class="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
             @if($company->logo)
                 <img src="{{ $company->logo_url }}" alt="{{ $company->name }}"

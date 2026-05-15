@@ -33,6 +33,9 @@ document.addEventListener('alpine:init', () => {
         cartUrls: window.__CATALOG_CART_URLS__ || {},
         cartPanelOpen: false,
         lineSyncing: false,
+        /** Posición viewport del panel fijo del carrito (evita clipping por overflow-x del nav). */
+        cartPopoverStyle: {},
+        cartPopoverCaretLeft: 272,
 
         init() {
             this.allProducts = window.__CATALOG_PRODUCTS__ || [];
@@ -47,7 +50,91 @@ document.addEventListener('alpine:init', () => {
             }
 
             this.refreshCart();
+
+            const repositionIfOpen = () => {
+                if (this.cartPanelOpen) {
+                    this.positionCatalogCartPopover();
+                }
+            };
+            window.addEventListener('resize', repositionIfOpen);
+            window.addEventListener('scroll', repositionIfOpen, true);
+
+            this.$watch('cartPanelOpen', (open) => {
+                if (open) {
+                    this.$nextTick(() => this.positionCatalogCartPopover());
+                } else {
+                    this.cartPopoverStyle = {};
+                }
+            });
         },
+
+        positionCatalogCartPopover() {
+            this.$nextTick(() => {
+                requestAnimationFrame(() => {
+                    const trig = document.getElementById('catalog-cart-trigger');
+                    const panel = document.getElementById('catalog-cart-panel');
+                    if (! trig || ! panel || ! this.cartPanelOpen) {
+                        this.cartPopoverStyle = {};
+
+                        return;
+                    }
+
+                    const br = trig.getBoundingClientRect();
+                    const vw = window.innerWidth;
+                    const vh = window.innerHeight;
+                    const margin = 12;
+                    const gap = 8;
+                    const panelW = Math.min(vw - 2 * margin, 352);
+                    const maxPanelH = Math.min(Math.floor(vh * 0.88), vh - 2 * margin);
+
+                    this.cartPopoverStyle = {
+                        position: 'fixed',
+                        zIndex: 9999,
+                        top: '-9999px',
+                        left: '0px',
+                        width: `${panelW}px`,
+                        maxWidth: `${panelW}px`,
+                        maxHeight: `${maxPanelH}px`,
+                        right: 'auto',
+                        visibility: 'hidden',
+                        pointerEvents: 'none',
+                    };
+
+                    panel.offsetHeight;
+
+                    const ph = panel.getBoundingClientRect().height || 340;
+                    let top = Math.round(br.bottom + gap);
+                    const spaceBelow = vh - top - margin;
+                    if (ph > spaceBelow && br.top - margin >= ph + gap) {
+                        top = Math.round(Math.max(margin, br.top - gap - ph));
+                    } else if (top + ph > vh - margin) {
+                        top = Math.round(Math.max(margin, vh - margin - ph));
+                    }
+
+                    let left = Math.round(br.right - panelW);
+                    left = Math.max(margin, Math.min(left, vw - panelW - margin));
+
+                    const cx = br.left + br.width / 2;
+                    let caret = Math.round(cx - left);
+                    caret = Math.max(18, Math.min(caret, panelW - 18));
+                    this.cartPopoverCaretLeft = caret;
+
+                    this.cartPopoverStyle = {
+                        position: 'fixed',
+                        zIndex: 9999,
+                        top: `${top}px`,
+                        left: `${left}px`,
+                        width: `${panelW}px`,
+                        maxWidth: `${panelW}px`,
+                        maxHeight: `${maxPanelH}px`,
+                        right: 'auto',
+                        visibility: 'visible',
+                        pointerEvents: 'auto',
+                    };
+                });
+            });
+        },
+
 
         qtyInCart(productId) {
             const line = this.cartItems.find((r) => Number(r.product_id) === Number(productId));
@@ -109,6 +196,9 @@ document.addEventListener('alpine:init', () => {
                 }
                 await this.refreshCart();
                 window.dispatchEvent(new CustomEvent('catalog-cart-updated'));
+                if (this.cartPanelOpen) {
+                    this.positionCatalogCartPopover();
+                }
             } finally {
                 this.lineSyncing = false;
             }
@@ -134,15 +224,20 @@ document.addEventListener('alpine:init', () => {
         },
 
         incrementLine(line) {
-            const stock = Number(line.stock ?? 0);
             const cur = Number(line.quantity ?? 0);
-            if (stock > 0 && cur >= stock) return;
+            if (typeof line.stock === 'number' && cur >= line.stock) {
+                return;
+            }
             this.syncCartLine(line.product_id, cur + 1);
         },
 
         decrementLine(line) {
             const cur = Number(line.quantity ?? 0);
             this.syncCartLine(line.product_id, cur - 1);
+        },
+
+        removeLineFromCart(line) {
+            this.syncCartLine(line.product_id, 0);
         },
 
         formatPrice(value) {
