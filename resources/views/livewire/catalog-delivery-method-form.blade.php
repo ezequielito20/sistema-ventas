@@ -151,7 +151,10 @@
                             @endforeach
                         </select>
                         @if ($deliverySlotZoneFilterActive ?? false)
-                            <p class="mt-2 text-xs text-amber-200/90">Estás viendo solo franjas de esa zona. Elegí &quot;Todas las zonas&quot; si no aparece algo que dio de alta para otra.</p>
+                            <p class="mt-2 text-xs text-amber-200/90">Estás viendo sólo franjas de esa zona. Si no aparece lo que cargaste en el alta (otra zona), pasá a &quot;Todas las zonas&quot; o pulsá:</p>
+                            <button type="button" wire:click="clearSlotZoneFilter" class="mt-2 text-xs font-semibold text-cyan-400 hover:underline">
+                                Ver franjas de todas las zonas
+                            </button>
                         @endif
                     </div>
                 @endif
@@ -187,14 +190,14 @@
                             </div>
                             <div>
                                 <label class="mb-1 block text-xs font-semibold text-slate-400">Hora desde</label>
-                                <input type="time" wire:model="slDeliveryFrom" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+                                <input type="time" wire:model.live="slDeliveryFrom" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
                                 @error('slDeliveryFrom')
                                     <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
                                 <label class="mb-1 block text-xs font-semibold text-slate-400">Hora hasta</label>
-                                <input type="time" wire:model="slDeliveryTo" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+                                <input type="time" wire:model.live="slDeliveryTo" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
                                 @error('slDeliveryTo')
                                     <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                                 @enderror
@@ -206,7 +209,7 @@
                             <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
                                 @foreach (\App\Models\DeliverySlot::isoWeekdaysLabelsEs() as $iso => $lbl)
                                     <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-950/50 px-3 py-2 text-sm text-slate-200 hover:border-cyan-600/50">
-                                        <input type="checkbox" wire:model="slSelectedWeekdays" value="{{ $iso }}" class="rounded border-slate-600" />
+                                        <input type="checkbox" wire:model.live="slSelectedWeekdays" value="{{ $iso }}" wire:key="wd-new-{{ $iso }}" class="rounded border-slate-600" />
                                         <span>{{ $lbl }}</span>
                                     </label>
                                 @endforeach
@@ -221,14 +224,14 @@
                         <div class="grid gap-4 sm:grid-cols-2 max-w-xl">
                             <div>
                                 <label class="mb-1 block text-xs font-semibold text-slate-400">Hora desde (compartida)</label>
-                                <input type="time" wire:model="slDeliveryFrom" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+                                <input type="time" wire:model.live="slDeliveryFrom" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
                                 @error('slDeliveryFrom')
                                     <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
                                 <label class="mb-1 block text-xs font-semibold text-slate-400">Hora hasta (compartida)</label>
-                                <input type="time" wire:model="slDeliveryTo" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+                                <input type="time" wire:model.live="slDeliveryTo" class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
                                 @error('slDeliveryTo')
                                     <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                                 @enderror
@@ -255,12 +258,26 @@
                     </div>
 
                     <div class="flex flex-wrap gap-2">
-                        <button type="submit" class="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500">{{ $slId ? 'Guardar franja' : 'Agregar franja(s)' }}</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="saveSlot" class="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500 disabled:opacity-60">
+                            <span wire:loading.remove wire:target="saveSlot">{{ $slId ? 'Guardar franja' : 'Agregar franja(s)' }}</span>
+                            <span wire:loading wire:target="saveSlot">Guardando…</span>
+                        </button>
                         @if ($slId)
                             <button type="button" wire:click="resetSlotForm" class="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">Cancelar</button>
                         @endif
                     </div>
                 </form>
+
+                @if ($deliverySlots->isEmpty())
+                    <div class="rounded-lg border border-slate-600/60 bg-slate-950/60 p-4 text-xs leading-relaxed text-slate-400">
+                        <p class="font-medium text-slate-300">La tabla muestra sólo las franjas ya guardadas en base de datos.</p>
+                        <ul class="mt-2 list-inside list-disc space-y-1">
+                            <li>Marcá al menos un día, completá «desde» y «hasta», y pulsá «Agregar franja(s)». Si algo falta, verás avisos encima.</li>
+                            <li>Si el método es <strong class="font-semibold text-slate-300">delivery</strong>, elegí zona en el alta y revisá «Filtrar listado por zona»: si ese filtro apunta a otra zona que la del alta, no verás ninguna fila.</li>
+                            <li>En el servidor ejecutá migraciones (<code class="rounded bg-slate-900 px-1 py-0.5 font-mono text-[0.65rem] text-cyan-200/90">php artisan migrate</code>) por la columna de hora hasta.</li>
+                        </ul>
+                    </div>
+                @endif
 
                 <div class="overflow-x-auto rounded-lg border border-slate-700/60">
                     <table class="min-w-full text-left text-sm text-slate-300">
@@ -269,19 +286,17 @@
                                 <th class="py-3 px-4">Día</th>
                                 <th class="py-3 px-4">Desde</th>
                                 <th class="py-3 px-4">Hasta</th>
-                                <th class="py-3 px-4">Zona</th>
                                 <th class="py-3 px-4">Máx.</th>
                                 <th class="py-3 px-4">Activo</th>
                                 <th class="py-3 px-4"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($slots as $s)
+                            @forelse ($deliverySlots as $s)
                                 <tr wire:key="sl-{{ $s->id }}" class="border-b border-slate-800/80">
                                     <td class="py-2 px-4 whitespace-nowrap">{{ $s->weekdayLabelEs() }}</td>
                                     <td class="py-2 px-4 whitespace-nowrap">{{ $s->timeShort() }}</td>
                                     <td class="py-2 px-4 whitespace-nowrap">{{ $s->timeEndShort() }}</td>
-                                    <td class="py-2 px-4">{{ $s->delivery_zone_id ? ($s->zone?->name ?? '—') : '—' }}</td>
                                     <td class="py-2 px-4">{{ $s->max_orders }}</td>
                                     <td class="py-2 px-4">{{ $s->is_active ? 'Sí' : 'No' }}</td>
                                     <td class="py-2 px-4 text-right whitespace-nowrap">
@@ -291,14 +306,19 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-6 px-4">
-                                        @if (($deliverySlotsFilteredOutHint ?? false))
-                                            <p class="text-center text-sm text-slate-300">Hay {{ $deliverySlotsTotalForMethod }} franja(s) en este método, pero ninguna coincide con la zona del filtro.</p>
-                                            <p class="mt-2 text-center">
+                                    <td colspan="6" class="py-6 px-4 space-y-3">
+                                        @if (($deliverySlotZoneFilterActive ?? false) && ($deliverySlotsTotalForMethod ?? 0) > 0)
+                                            <p class="text-center text-sm text-slate-300">Hay {{ $deliverySlotsTotalForMethod }} franja(s) en este método para otras zonas, pero ninguna coincide con la zona seleccionada en el filtro.</p>
+                                            <p class="text-center">
                                                 <button type="button" wire:click="clearSlotZoneFilter" class="text-cyan-400 hover:underline">Mostrar todas las zonas</button>
                                             </p>
+                                        @elseif (($deliverySlotZoneFilterActive ?? false) && ($deliverySlotsTotalForMethod ?? 0) === 0)
+                                            <p class="text-center text-sm text-slate-400">Hay un filtro de zona activo y aún no hay franjas guardadas para este método. Podés tener el filtro en una zona donde no cargaste datos.</p>
+                                            <p class="text-center">
+                                                <button type="button" wire:click="clearSlotZoneFilter" class="text-cyan-400 hover:underline">Quitar filtro y ver todas</button>
+                                            </p>
                                         @else
-                                            <p class="text-center text-sm text-slate-500">Sin franjas para el filtro actual.</p>
+                                            <p class="text-center text-sm text-slate-500">Sin franjas en el listado. Si pulsaste «Agregar franja(s)» y esto sigue igual, revisá días marcados, horarios y avisos de error arriba.</p>
                                         @endif
                                     </td>
                                 </tr>

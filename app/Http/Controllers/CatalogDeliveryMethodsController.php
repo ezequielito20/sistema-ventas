@@ -9,6 +9,7 @@ use App\Services\PlanEntitlementService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class CatalogDeliveryMethodsController extends Controller
 {
@@ -59,13 +60,17 @@ class CatalogDeliveryMethodsController extends Controller
             ->orderBy('name')
             ->get();
 
-        $deliverySlots = DeliverySlot::query()
+        $slotQuery = DeliverySlot::query()
             ->where('company_id', $company->id)
             ->with(['deliveryMethod', 'zone'])
             ->orderBy('weekday_iso')
-            ->orderBy('delivery_time')
-            ->orderByRaw('COALESCE(delivery_time_end, delivery_time)')
-            ->get();
+            ->orderBy('delivery_time');
+
+        if (Schema::hasColumn('delivery_slots', 'delivery_time_end')) {
+            $slotQuery->orderByRaw('COALESCE(delivery_time_end, delivery_time)');
+        }
+
+        $deliverySlots = $slotQuery->get();
 
         $emittedAt = now();
         $filename = 'informe-metodos-entrega-catalogo-'.$emittedAt->format('Y-m-d_His').'.pdf';

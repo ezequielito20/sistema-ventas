@@ -10,6 +10,7 @@ use App\Services\PlanEntitlementService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
 class CatalogDeliveryMethodForm extends Component
@@ -405,9 +406,27 @@ class CatalogDeliveryMethodForm extends Component
     public function saveSlot(): void
     {
         $this->authorizeDeliveries($this->slId ? 'edit' : 'create');
+        abort_if($this->companyId <= 0, 403);
+
         $method = $this->deliveryMethod();
         if (! $method) {
             $this->toast('Primero creá el método de entrega.', 'error');
+
+            return;
+        }
+
+        if (! $this->slId) {
+            $pickedDays = array_values(array_unique(array_map(static fn ($v) => (int) $v, $this->slSelectedWeekdays)));
+            $pickedDays = array_values(array_filter($pickedDays, static fn (int $d) => $d >= 1 && $d <= 7));
+            if ($pickedDays === []) {
+                $this->toast('Tenés que marcar al menos un día de la semana antes de guardar.', 'error');
+
+                return;
+            }
+        }
+
+        if (trim($this->slDeliveryFrom) === '' || trim($this->slDeliveryTo) === '') {
+            $this->toast('Completá hora desde y hora hasta (los campos de tiempo no pueden quedar vacíos).', 'error');
 
             return;
         }
@@ -575,7 +594,7 @@ class CatalogDeliveryMethodForm extends Component
         }
 
         if ($method) {
-            $slots = DeliverySlot::query()
+            $slotQuery = DeliverySlot::query()
                 ->where('company_id', $this->companyId)
                 ->where('company_delivery_method_id', $method->id)
                 ->when(
@@ -583,10 +602,12 @@ class CatalogDeliveryMethodForm extends Component
                     fn ($q) => $q->where('delivery_zone_id', $this->slotListZoneId)
                 )
                 ->orderBy('weekday_iso')
-                ->orderBy('delivery_time')
-                ->orderByRaw('COALESCE(delivery_time_end, delivery_time)')
-                ->with('zone')
-                ->get();
+                ->orderBy('delivery_time');
+            if (Schema::hasColumn('delivery_slots', 'delivery_time_end')) {
+                $slotQuery->orderByRaw('COALESCE(delivery_time_end, delivery_time)');
+            }
+
+            $slots = $slotQuery->get();
 
             if ($method->isDelivery()) {
                 $slotZones = DeliveryZone::query()
@@ -598,16 +619,12 @@ class CatalogDeliveryMethodForm extends Component
 
         $deliverySlotZoneFilterActive = false;
         $deliverySlotsTotalForMethod = 0;
-        $deliverySlotsFilteredOutHint = false;
         if ($method !== null) {
             $deliverySlotZoneFilterActive = $method->isDelivery() && $this->slotListZoneId > 0;
             $deliverySlotsTotalForMethod = DeliverySlot::query()
                 ->where('company_id', $this->companyId)
                 ->where('company_delivery_method_id', $method->id)
                 ->count();
-            $deliverySlotsFilteredOutHint = $deliverySlotZoneFilterActive
-                && $slots->isEmpty()
-                && $deliverySlotsTotalForMethod > 0;
         }
 
         $headingTitle = $this->deliveryMethodId ? 'Editar método de entrega' : 'Nuevo método de entrega';
@@ -616,11 +633,10 @@ class CatalogDeliveryMethodForm extends Component
             'headingTitle' => $headingTitle,
             'methodModel' => $method,
             'zones' => $zones,
-            'slots' => $slots,
+            'deliverySlots' => $slots,
             'slotZones' => $slotZones,
             'deliverySlotZoneFilterActive' => $deliverySlotZoneFilterActive,
             'deliverySlotsTotalForMethod' => $deliverySlotsTotalForMethod,
-            'deliverySlotsFilteredOutHint' => $deliverySlotsFilteredOutHint,
         ]);
     }
 }

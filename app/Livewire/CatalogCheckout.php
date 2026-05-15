@@ -15,6 +15,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
 class CatalogCheckout extends Component
@@ -120,8 +121,10 @@ class CatalogCheckout extends Component
             ->where('company_delivery_method_id', $method->id)
             ->where('is_active', true)
             ->orderBy('weekday_iso')
-            ->orderBy('delivery_time')
-            ->orderByRaw('COALESCE(delivery_time_end, delivery_time)');
+            ->orderBy('delivery_time');
+        if (Schema::hasColumn('delivery_slots', 'delivery_time_end')) {
+            $q->orderByRaw('COALESCE(delivery_time_end, delivery_time)');
+        }
 
         if ($method->isDelivery()) {
             if (! $this->delivery_zone_id) {
