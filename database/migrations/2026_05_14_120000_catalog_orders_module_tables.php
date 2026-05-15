@@ -140,24 +140,36 @@ return new class extends Migration
                 $table->foreignId('company_id')->nullable()->after('user_id')->constrained()->cascadeOnDelete();
             }
             if (! Schema::hasColumn('notifications', 'order_id')) {
-                $table->unsignedBigInteger('order_id')->nullable()->after('company_id');
-                $table->index('order_id');
+                $table->foreignId('order_id')->nullable()->after('company_id')->constrained('orders')->cascadeOnDelete();
             }
         });
     }
 
     public function down(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            if (Schema::hasColumn('notifications', 'order_id')) {
-                $table->dropIndex(['order_id']);
+        if (Schema::hasColumn('notifications', 'order_id')) {
+            Schema::table('notifications', function (Blueprint $table): void {
+                try {
+                    $table->dropForeign(['order_id']);
+                } catch (Throwable) {
+                    try {
+                        $table->dropIndex(['order_id']);
+                    } catch (Throwable) {
+                        // Sin FK ni índice Laravel estándar
+                    }
+                }
+            });
+            Schema::table('notifications', function (Blueprint $table): void {
                 $table->dropColumn('order_id');
-            }
-            if (Schema::hasColumn('notifications', 'company_id')) {
+            });
+        }
+
+        if (Schema::hasColumn('notifications', 'company_id')) {
+            Schema::table('notifications', function (Blueprint $table): void {
                 $table->dropForeign(['company_id']);
                 $table->dropColumn('company_id');
-            }
-        });
+            });
+        }
 
         Schema::dropIfExists('order_items');
         Schema::dropIfExists('orders');

@@ -29,6 +29,7 @@ window.__CATALOG_PRODUCTS__ = {{ Js::from($products->map(function ($p) {
         'final_price' => (float) $p->final_price,
         'has_discount' => $p->has_discount,
         'discount_percent' => $p->discount_percent,
+        'stock' => (int) $p->stock,
     ];
 })) }};
 window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/producto'), '/')) }};
@@ -138,7 +139,7 @@ window.__CATALOG_CART_URLS__ = @json($catalogCartUrls ?? []);
                 <div class="flex flex-col gap-1 md:max-w-3xl lg:max-w-none">
                     <h1 class="font-dv-display text-xl font-bold leading-tight text-dv-on-surface sm:text-2xl lg:text-3xl xl:text-4xl">{{ __('Catálogo') }}</h1>
                     <p class="max-w-2xl text-sm leading-relaxed text-dv-on-surface-variant/80 sm:text-base lg:text-dv-body-md">
-                        {{ __('Explorá nuestros productos. Filtralos por categoría y precio, y consultanos por WhatsApp.') }}
+                        {{ __('Explorá nuestros productos, agregalos al carrito y completá tu pedido online. También podés filtrar por categoría y precio, o consultarnos por WhatsApp.') }}
                     </p>
                 </div>
 
@@ -326,10 +327,24 @@ window.__CATALOG_CART_URLS__ = @json($catalogCartUrls ?? []);
 
                                 <p class="mb-3 font-mono text-[10px] text-dv-outline/50" x-show="product.code" x-text="'#' + product.code"></p>
 
-                                <a :href="productUrl(product.id)"
-                                   class="mt-auto w-full rounded-lg border border-dv-primary/20 bg-dv-primary/8 py-2 text-center text-[10px] font-bold uppercase tracking-wider text-dv-primary transition duration-200 hover:bg-dv-primary hover:text-dv-on-primary group-hover:border-dv-primary/40 xs:py-2.5 xs:text-[11px]">
-                                    {{ __('Ver detalle') }}
-                                </a>
+                                <div class="mt-auto flex flex-col gap-2">
+                                    <div class="flex items-center justify-end">
+                                        <button type="button"
+                                                x-show="cartUrls.sync && product.stock > 0"
+                                                x-cloak
+                                                @click.stop.prevent="incrementProductInCart(product)"
+                                                :disabled="qtyInCart(product.id) >= product.stock || lineSyncing"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-dv-secondary/40 bg-dv-secondary/15 text-dv-secondary shadow-sm transition hover:bg-dv-secondary/25 disabled:cursor-not-allowed disabled:opacity-35"
+                                                title="{{ __('Agregar al carrito') }}"
+                                                aria-label="{{ __('Agregar al carrito') }}">
+                                            <i class="fas fa-cart-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                    <a :href="productUrl(product.id)"
+                                       class="w-full rounded-lg border border-dv-primary/20 bg-dv-primary/8 py-2 text-center text-[10px] font-bold uppercase tracking-wider text-dv-primary transition duration-200 hover:bg-dv-primary hover:text-dv-on-primary group-hover:border-dv-primary/40 xs:py-2.5 xs:text-[11px]">
+                                        {{ __('Ver detalle') }}
+                                    </a>
+                                </div>
                             </div>
                         </article>
                     </template>

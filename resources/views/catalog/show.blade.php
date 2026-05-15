@@ -24,12 +24,11 @@
     <link rel="canonical" href="{{ request()->url() }}">
 @endpush
 
-@push('scripts')
+@section('content')
 <script>
 window.__CATALOG_PRODUCTS__ = [];
+window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/producto'), '/')) }};
 window.__CATALOG_CART_URLS__ = @json($catalogCartUrls ?? []);
-</script>
-<script>
 window.__CATALOG_GALLERY_IMAGES__ = {{ Js::from($product->images->isNotEmpty()
     ? $product->images
         ->sortBy(fn ($img) => $img->is_cover ? -1 : $img->sort_order)
@@ -52,9 +51,7 @@ window.shareCatalogProduct = async function (title, url) {
     }
 };
 </script>
-@endpush
 
-@section('content')
 <div class="font-dv-body min-w-0 max-w-full overflow-x-hidden" x-data="catalog">
     @include('catalog.partials.product-nav', ['company' => $company, 'productName' => $product->name])
 
@@ -163,10 +160,32 @@ window.shareCatalogProduct = async function (title, url) {
                             <span class="h-2 w-2 animate-pulse rounded-full bg-dv-secondary"></span>
                             {{ $product->stock }} {{ __('disponibles') }}
                         </div>
-                        <button type="button" @click="addToCart({{ $product->id }}, 1)"
-                                class="mt-4 w-full rounded-xl border border-dv-primary/50 bg-dv-primary/15 py-3 text-sm font-bold text-dv-primary transition hover:bg-dv-primary/25">
-                            {{ __('Agregar al pedido') }}
-                        </button>
+                        <div class="mt-4 space-y-2" x-show="cartUrls.sync" x-cloak>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <div class="inline-flex items-center rounded-xl border border-dv-outline-variant/40 bg-dv-surface-container-high p-1 shadow-inner">
+                                    <button type="button"
+                                            class="flex h-11 w-11 items-center justify-center rounded-lg text-dv-on-surface-variant transition hover:bg-dv-surface-container disabled:opacity-30"
+                                            @click.prevent="syncCartLine({{ $product->id }}, qtyInCart({{ $product->id }}) - 1)"
+                                            :disabled="qtyInCart({{ $product->id }}) <= 0 || lineSyncing"
+                                            aria-label="{{ __('Quitar una unidad') }}">
+                                        <i class="fas fa-minus text-xs"></i>
+                                    </button>
+                                    <span class="min-w-[2.5rem] px-2 text-center font-dv-display text-lg font-bold tabular-nums text-dv-on-surface"
+                                          x-text="qtyInCart({{ $product->id }})"></span>
+                                    <button type="button"
+                                            class="flex h-11 w-11 items-center justify-center rounded-lg text-dv-secondary transition hover:bg-dv-secondary/15 disabled:opacity-30"
+                                            @click.prevent="incrementProductById({{ $product->id }}, {{ $product->stock }})"
+                                            :disabled="qtyInCart({{ $product->id }}) >= {{ $product->stock }} || lineSyncing"
+                                            aria-label="{{ __('Agregar al carrito') }}">
+                                        <i class="fas fa-cart-plus text-sm"></i>
+                                    </button>
+                                </div>
+                                <span class="text-xs text-dv-outline">{{ __('Máximo') }}: <strong class="text-dv-on-surface-variant">{{ $product->stock }}</strong></span>
+                            </div>
+                            <p class="text-[11px] leading-snug text-dv-on-surface-variant/80">
+                                {{ __('El subtotal del carrito se muestra en la barra superior.') }}
+                            </p>
+                        </div>
                     @endif
                 </div>
 

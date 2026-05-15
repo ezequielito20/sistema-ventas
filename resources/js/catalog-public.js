@@ -9,6 +9,11 @@ import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
 
+document.addEventListener('catalog-cart-error', (e) => {
+    const msg = e.detail?.message ?? 'No se pudo actualizar el carrito.';
+    window.alert(msg);
+});
+
 document.addEventListener('alpine:init', () => {
     Alpine.data('catalog', () => ({
         search: '',
@@ -23,7 +28,11 @@ document.addEventListener('alpine:init', () => {
 
         cartLineCount: 0,
         cartQtyTotal: 0,
+        cartSubtotalUsd: 0,
+        cartItems: [],
         cartUrls: window.__CATALOG_CART_URLS__ || {},
+        cartPanelOpen: false,
+        lineSyncing: false,
 
         init() {
             this.allProducts = window.__CATALOG_PRODUCTS__ || [];
@@ -40,6 +49,12 @@ document.addEventListener('alpine:init', () => {
             this.refreshCart();
         },
 
+        qtyInCart(productId) {
+            const line = this.cartItems.find((r) => Number(r.product_id) === Number(productId));
+
+            return line ? Number(line.quantity) : 0;
+        },
+
         async refreshCart() {
             const u = this.cartUrls.get;
             if (!u) return;
@@ -52,43 +67,82 @@ document.addEventListener('alpine:init', () => {
                 const j = await r.json();
                 this.cartLineCount = j.line_count || 0;
                 this.cartQtyTotal = j.quantity_total || 0;
+                this.cartItems = Array.isArray(j.items) ? j.items : [];
+                this.cartSubtotalUsd = Number(j.subtotal_usd ?? 0);
             } catch (e) {
                 /* ignore */
             }
         },
 
-        async addToCart(productId, qty = 1) {
+        async syncCartLine(productId, quantity) {
             const u = this.cartUrls.sync;
             if (!u) return;
+            const q = Math.max(0, Math.min(9999, Math.floor(Number(quantity))));
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            const r = await fetch(u, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-CSRF-TOKEN': token || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({ product_id: productId, quantity: qty }),
-            });
-            if (!r.ok) {
-                let msg = 'No se pudo actualizar el carrito.';
-                try {
-                    const j = await r.json();
-                    if (j.message) msg = j.message;
-                    if (j.errors) {
-                        const first = Object.values(j.errors)[0];
-                        if (Array.isArray(first) && first[0]) msg = first[0];
+            this.lineSyncing = true;
+            try {
+                const r = await fetch(u, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN': token || '',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ product_id: productId, quantity: q }),
+                });
+                if (!r.ok) {
+                    let msg = 'No se pudo actualizar el carrito.';
+                    try {
+                        const j = await r.json();
+                        if (j.message) msg = j.message;
+                        if (j.errors) {
+                            const first = Object.values(j.errors)[0];
+                            if (Array.isArray(first) && first[0]) msg = first[0];
+                        }
+                    } catch (e) {
+                        /* */
                     }
-                } catch (e) {
-                    /* */
+                    window.dispatchEvent(new CustomEvent('catalog-cart-error', { detail: { message: msg } }));
+                    return;
                 }
-                window.dispatchEvent(new CustomEvent('catalog-cart-error', { detail: { message: msg } }));
-                return;
+                await this.refreshCart();
+                window.dispatchEvent(new CustomEvent('catalog-cart-updated'));
+            } finally {
+                this.lineSyncing = false;
             }
-            await this.refreshCart();
-            window.dispatchEvent(new CustomEvent('catalog-cart-updated'));
+        },
+
+        async addToCart(productId, qty = 1) {
+            await this.syncCartLine(productId, qty);
+        },
+
+        incrementProductInCart(product) {
+            const stock = Number(product?.stock ?? 0);
+            if (stock <= 0) return;
+            const cur = this.qtyInCart(product.id);
+            if (cur >= stock) return;
+            this.syncCartLine(product.id, cur + 1);
+        },
+
+        incrementProductById(productId, stockMax) {
+            const max = Number(stockMax);
+            const cur = this.qtyInCart(productId);
+            if (max > 0 && cur >= max) return;
+            this.syncCartLine(productId, cur + 1);
+        },
+
+        incrementLine(line) {
+            const stock = Number(line.stock ?? 0);
+            const cur = Number(line.quantity ?? 0);
+            if (stock > 0 && cur >= stock) return;
+            this.syncCartLine(line.product_id, cur + 1);
+        },
+
+        decrementLine(line) {
+            const cur = Number(line.quantity ?? 0);
+            this.syncCartLine(line.product_id, cur - 1);
         },
 
         formatPrice(value) {

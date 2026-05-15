@@ -12,11 +12,7 @@
         </a>
 
         <div class="flex shrink-0 items-center gap-2 sm:gap-3">
-            <a x-show="cartQtyTotal > 0" x-cloak :href="cartUrls.checkout"
-               class="relative flex items-center gap-2 rounded-xl border border-dv-primary/40 bg-dv-primary/10 px-3 py-2 text-xs font-semibold text-dv-primary">
-                <i class="fas fa-shopping-bag"></i>
-                <span class="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-dv-secondary px-0.5 text-[9px] font-bold text-white" x-text="cartQtyTotal"></span>
-            </a>
+            @include('catalog.partials.nav-cart-widget')
             <button type="button"
                     onclick="window.shareCatalogProduct(@js($productName), @js(url()->current()))"
                     class="flex items-center gap-2 rounded-xl border border-dv-outline-variant/50 px-3 py-2 font-dv-label text-dv-label-md font-semibold uppercase text-dv-on-surface-variant transition hover:border-dv-primary/40 hover:text-dv-on-surface">

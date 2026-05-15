@@ -1,4 +1,4 @@
-@can('orders.index')
+@if (auth()->user()->can('orders.index') || auth()->user()->isSuperAdmin())
 <div x-data="adminNotifDrawer()" x-init="init()" class="relative z-50">
     <button type="button" @click="open = !open; if(open) load()" aria-label="Notificaciones"
             class="relative rounded-md p-2 text-slate-300 hover:bg-slate-800 hover:text-white">
@@ -82,4 +82,4 @@
         };
     }
 </script>
-@endcan
+@endif

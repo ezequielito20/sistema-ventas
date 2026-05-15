@@ -39,7 +39,8 @@ class NotificationController extends Controller
 
     public function getUnreadCount()
     {
-        if (! Auth::user()?->can('orders.index')) {
+        $user = Auth::user();
+        if (! $user || (! $user->can('orders.index') && ! $user->isSuperAdmin())) {
             return response()->json(['count' => 0]);
         }
 
@@ -58,7 +59,8 @@ class NotificationController extends Controller
 
     public function getRecentNotifications()
     {
-        if (! Auth::user()?->can('orders.index')) {
+        $user = Auth::user();
+        if (! $user || (! $user->can('orders.index') && ! $user->isSuperAdmin())) {
             return response()->json(['notifications' => []]);
         }
 

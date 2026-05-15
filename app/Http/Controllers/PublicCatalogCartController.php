@@ -17,7 +17,12 @@ class PublicCatalogCartController extends Controller
 
         $cart = $carts->resolveCartFromRequest($request, $company);
         if (! $cart) {
-            return response()->json(['items' => [], 'line_count' => 0, 'quantity_total' => 0]);
+            return response()->json([
+                'items' => [],
+                'line_count' => 0,
+                'quantity_total' => 0,
+                'subtotal_usd' => 0,
+            ]);
         }
 
         $items = $carts->itemsWithProducts($cart)->map(function ($row) use ($company) {
@@ -30,15 +35,19 @@ class PublicCatalogCartController extends Controller
                 'product_id' => $p->id,
                 'name' => $p->name,
                 'quantity' => $row->quantity,
+                'stock' => (int) $p->stock,
                 'unit_price_usd' => (float) $p->final_price,
                 'line_total_usd' => round((float) $p->final_price * $row->quantity, 2),
             ];
         })->filter()->values();
 
+        $subtotal = round((float) $items->sum('line_total_usd'), 2);
+
         return response()->json([
             'items' => $items,
             'line_count' => $items->count(),
             'quantity_total' => (int) $items->sum('quantity'),
+            'subtotal_usd' => $subtotal,
         ]);
     }
 

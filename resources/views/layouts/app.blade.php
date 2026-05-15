@@ -783,7 +783,9 @@
                     <!-- Right side -->
                     @auth
                         <div class="flex items-center space-x-4">
-                            @include('components.admin-notifications-drawer')
+                            @if ($planMod('orders'))
+                                @include('components.admin-notifications-drawer')
+                            @endif
 
                             <!-- User menu -->
                             <div x-data="{ open: false }" class="relative">
