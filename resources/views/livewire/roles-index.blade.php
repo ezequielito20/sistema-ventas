@@ -448,7 +448,7 @@
                             @foreach ($permissionsGrouped as $module => $modulePermissions)
                                 <div class="rounded-xl border border-slate-600/40 bg-slate-950/40" wire:key="mod-{{ $module }}">
                                     <div class="flex items-center justify-between gap-2 border-b border-slate-700/50 px-3 py-2">
-                                        <span class="text-sm font-semibold text-cyan-200"><i class="fas fa-folder mr-1 text-slate-400"></i>{{ $module }}</span>
+                                        <span class="text-sm font-semibold text-cyan-200"><i class="fas fa-folder mr-1 text-slate-400"></i>{{ \App\Support\PermissionFriendlyNames::permissionGroupLabel($module) }}</span>
                                         <button type="button" wire:click="toggleModulePermissions(@js($module))" class="text-xs text-cyan-400 hover:text-cyan-200">
                                             Alternar módulo
                                         </button>

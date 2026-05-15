@@ -653,7 +653,7 @@
                                     <div class="permission-module-card">
                                         <div class="permission-module-header">
                                             <div class="permission-module-title">
-                                                <i class="fas fa-folder mr-2"></i>{{ $module }}
+                                                <i class="fas fa-folder mr-2"></i>{{ \App\Support\PermissionFriendlyNames::permissionGroupLabel($module) }}
                                             </div>
                                             <div class="permission-module-selector">
                                                 <div class="custom-control custom-switch">

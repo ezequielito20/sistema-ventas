@@ -116,6 +116,24 @@ final class PermissionFriendlyNames
     }
 
     /**
+     * Título en español para la tarjeta de permisos agrupados por prefijo
+     * (p. ej. "customers" → "Clientes", "cash-counts" → "Arqueo de caja").
+     */
+    public static function permissionGroupLabel(string $prefix): string
+    {
+        $moduleKey = ModuleRegistry::permissionPrefixToModuleKey()[$prefix] ?? null;
+        if ($moduleKey !== null) {
+            $def = ModuleRegistry::modules()[$moduleKey] ?? null;
+            $label = $def['label'] ?? null;
+            if (is_string($label) && $label !== '') {
+                return $label;
+            }
+        }
+
+        return ucfirst(str_replace(['-', '_'], ' ', $prefix));
+    }
+
+    /**
      * Permisos agrupados por prefijo de módulo (segmento antes del primer punto).
      */
     public static function grouped(): Collection
