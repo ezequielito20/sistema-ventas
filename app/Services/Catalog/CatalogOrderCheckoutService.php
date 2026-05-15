@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Services\PlanEntitlementService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class CatalogOrderCheckoutService
@@ -43,6 +44,17 @@ class CatalogOrderCheckoutService
                 'cart' => 'El carrito está vacío.',
             ]);
         }
+
+        $phoneDigits = preg_replace('/\D+/', '', (string) ($data['customer_phone'] ?? ''));
+        Validator::make(
+            ['customer_phone' => $phoneDigits],
+            ['customer_phone' => ['required', 'digits:11']],
+            [
+                'customer_phone.required' => 'El teléfono es obligatorio',
+                'customer_phone.digits' => 'El teléfono debe tener exactamente 11 dígitos numéricos (ej: 04148965789).',
+            ]
+        )->validate();
+        $data['customer_phone'] = $phoneDigits;
 
         /** @var CompanyPaymentMethod|null $paymentMethod */
         $paymentMethod = CompanyPaymentMethod::query()

@@ -106,6 +106,13 @@ class CatalogCheckout extends Component
             ->get();
     }
 
+    public function updatedCustomerPhone(): void
+    {
+        $digits = preg_replace('/\D+/', '', (string) $this->customer_phone);
+
+        $this->customer_phone = substr($digits, 0, 11);
+    }
+
     public function getDeliverySlotsProperty(): Collection
     {
         if (! $this->company_delivery_method_id) {
@@ -145,12 +152,15 @@ class CatalogCheckout extends Component
 
         $this->validate([
             'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:40',
+            'customer_phone' => ['required', 'digits:11'],
             'notes' => 'nullable|string|max:2000',
             'company_payment_method_id' => 'required|integer|exists:company_payment_methods,id',
             'company_delivery_method_id' => 'required|integer|exists:company_delivery_methods,id',
             'delivery_zone_id' => 'nullable|integer|exists:delivery_zones,id',
             'delivery_slot_id' => 'nullable|integer|exists:delivery_slots,id',
+        ], [
+            'customer_phone.required' => 'El teléfono es obligatorio',
+            'customer_phone.digits' => 'El teléfono debe tener exactamente 11 dígitos numéricos (ej: 04148965789).',
         ]);
 
         $dm = CompanyDeliveryMethod::query()
