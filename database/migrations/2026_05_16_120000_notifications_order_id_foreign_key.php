@@ -81,18 +81,24 @@ return new class extends Migration
 
     private function pgsqlOrderIdForeignExists(): bool
     {
+        $schema = Schema::getConnection()->getConfig('schema') ?? 'public';
+
         $row = DB::selectOne(
-            "SELECT 1 AS ok
+            'SELECT 1 AS ok
              FROM information_schema.table_constraints tc
              INNER JOIN information_schema.key_column_usage kcu
-                 ON tc.constraint_catalog = kcu.constraint_catalog
-                 AND tc.constraint_schema = kcu.constraint_schema
+                 ON tc.constraint_schema = kcu.constraint_schema
                  AND tc.constraint_name = kcu.constraint_name
-             WHERE tc.table_name = 'notifications'
-               AND tc.constraint_type = 'FOREIGN KEY'
-               AND kcu.column_name = 'order_id'
-               AND kcu.referenced_table_name = 'orders'
-             LIMIT 1"
+             INNER JOIN information_schema.constraint_column_usage ccu
+                 ON ccu.constraint_schema = tc.constraint_schema
+                 AND ccu.constraint_name = tc.constraint_name
+             WHERE tc.table_schema = ?
+               AND tc.table_name = ?
+               AND tc.constraint_type = ?
+               AND kcu.column_name = ?
+               AND ccu.table_name = ?
+             LIMIT 1',
+            [$schema, 'notifications', 'FOREIGN KEY', 'order_id', 'orders']
         );
 
         return $row !== null;
