@@ -59,6 +59,12 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('resize', repositionIfOpen);
             window.addEventListener('scroll', repositionIfOpen, true);
 
+            const vp = typeof window.visualViewport !== 'undefined' ? window.visualViewport : null;
+            if (vp) {
+                vp.addEventListener('resize', repositionIfOpen);
+                vp.addEventListener('scroll', repositionIfOpen);
+            }
+
             this.$watch('cartPanelOpen', (open) => {
                 if (open) {
                     this.$nextTick(() => this.positionCatalogCartPopover());
@@ -70,69 +76,99 @@ document.addEventListener('alpine:init', () => {
 
         positionCatalogCartPopover() {
             this.$nextTick(() => {
+                // Dos frames: después de que Alpine aplique x-show/plantillas, el alto real existe.
                 requestAnimationFrame(() => {
-                    const trig = document.getElementById('catalog-cart-trigger');
-                    const panel = document.getElementById('catalog-cart-panel');
-                    if (! trig || ! panel || ! this.cartPanelOpen) {
-                        this.cartPopoverStyle = {};
-
-                        return;
-                    }
-
-                    const br = trig.getBoundingClientRect();
-                    const vw = window.innerWidth;
-                    const vh = window.innerHeight;
-                    const margin = 12;
-                    const gap = 8;
-                    const panelW = Math.min(vw - 2 * margin, 352);
-                    const maxPanelH = Math.min(Math.floor(vh * 0.88), vh - 2 * margin);
-
-                    this.cartPopoverStyle = {
-                        position: 'fixed',
-                        zIndex: 9999,
-                        top: '-9999px',
-                        left: '0px',
-                        width: `${panelW}px`,
-                        maxWidth: `${panelW}px`,
-                        maxHeight: `${maxPanelH}px`,
-                        right: 'auto',
-                        visibility: 'hidden',
-                        pointerEvents: 'none',
-                    };
-
-                    panel.offsetHeight;
-
-                    const ph = panel.getBoundingClientRect().height || 340;
-                    let top = Math.round(br.bottom + gap);
-                    const spaceBelow = vh - top - margin;
-                    if (ph > spaceBelow && br.top - margin >= ph + gap) {
-                        top = Math.round(Math.max(margin, br.top - gap - ph));
-                    } else if (top + ph > vh - margin) {
-                        top = Math.round(Math.max(margin, vh - margin - ph));
-                    }
-
-                    let left = Math.round(br.right - panelW);
-                    left = Math.max(margin, Math.min(left, vw - panelW - margin));
-
-                    const cx = br.left + br.width / 2;
-                    let caret = Math.round(cx - left);
-                    caret = Math.max(18, Math.min(caret, panelW - 18));
-                    this.cartPopoverCaretLeft = caret;
-
-                    this.cartPopoverStyle = {
-                        position: 'fixed',
-                        zIndex: 9999,
-                        top: `${top}px`,
-                        left: `${left}px`,
-                        width: `${panelW}px`,
-                        maxWidth: `${panelW}px`,
-                        maxHeight: `${maxPanelH}px`,
-                        right: 'auto',
-                        visibility: 'visible',
-                        pointerEvents: 'auto',
-                    };
+                    this.runCatalogCartPopoverLayout();
+                    requestAnimationFrame(() => this.runCatalogCartPopoverLayout());
                 });
             });
+        },
+
+        runCatalogCartPopoverLayout() {
+            const trig = document.getElementById('catalog-cart-trigger');
+            const panel = document.getElementById('catalog-cart-panel');
+            if (! trig || ! panel || ! this.cartPanelOpen) {
+                this.cartPopoverStyle = {};
+
+                return;
+            }
+
+            const br = trig.getBoundingClientRect();
+            const vv = window.visualViewport;
+            const vw = vv?.width ?? window.innerWidth;
+            const vvHeight = vv?.height ?? window.innerHeight;
+            const vt = vv?.offsetTop ?? 0;
+            const margin = 12;
+            /** Área usable del viewport visible (útil cuando la UI del navegador reduce `innerHeight`). */
+            const visibleTop = vt + margin;
+            const visibleBottom = vt + vvHeight - margin;
+
+            const gap = 8;
+            const caretOverhangPx = 10;
+            const panelW = Math.min(Math.max(260, vw - 2 * margin), 352);
+            const maxPanelH = Math.max(160, Math.min(Math.floor(vvHeight * 0.92), visibleBottom - visibleTop));
+
+            let left = Math.round(br.right - panelW);
+            left = Math.max(margin, Math.min(left, vw - panelW - margin));
+
+            const preferBelowTop = Math.round(br.bottom + gap);
+
+            // Medimos anclado «debajo del botón» (sin teleportar fuera del viewport): evita alturas 0 al primer pintado.
+            this.cartPopoverStyle = {
+                position: 'fixed',
+                zIndex: 9999,
+                top: `${preferBelowTop}px`,
+                left: `${left}px`,
+                width: `${panelW}px`,
+                maxWidth: `${panelW}px`,
+                maxHeight: `${maxPanelH}px`,
+                right: 'auto',
+                visibility: 'hidden',
+                pointerEvents: 'none',
+                transform: 'none',
+            };
+
+            panel.offsetHeight;
+            let ph = panel.getBoundingClientRect().height;
+            if (! Number.isFinite(ph) || ph < 32) {
+                ph = Math.min(panel.scrollHeight, maxPanelH);
+            }
+            if (! Number.isFinite(ph) || ph < 32) {
+                ph = 280;
+            }
+            ph = Math.min(ph, maxPanelH);
+
+            let top = preferBelowTop;
+            const fitsBelow = top + ph <= visibleBottom;
+
+            if (! fitsBelow) {
+                const aboveTop = Math.round(br.top - gap - ph);
+                if (aboveTop >= visibleTop) {
+                    top = aboveTop;
+                } else {
+                    top = Math.max(visibleTop, Math.round(visibleBottom - ph));
+                }
+            }
+
+            top = Math.max(Math.ceil(visibleTop + caretOverhangPx), Math.round(top));
+
+            const cx = br.left + br.width / 2;
+            const caret = Math.max(18, Math.min(Math.round(cx - left), panelW - 18));
+            this.cartPopoverCaretLeft = caret;
+
+            this.cartPopoverStyle = {
+                position: 'fixed',
+                zIndex: 9999,
+                top: `${top}px`,
+                left: `${left}px`,
+                width: `${panelW}px`,
+                maxWidth: `${panelW}px`,
+                maxHeight: `${maxPanelH}px`,
+                right: 'auto',
+                visibility: 'visible',
+                pointerEvents: 'auto',
+                transform: 'none',
+            };
         },
 
 
