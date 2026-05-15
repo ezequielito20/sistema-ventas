@@ -32,4 +32,11 @@ return [
     'order_ip_rate_limit_decay_seconds' => (int) env('CATALOG_ORDER_IP_RATE_LIMIT_DECAY_SECONDS', 3600),
 
     'order_max_pending_per_phone' => (int) env('CATALOG_ORDER_MAX_PENDING_PER_PHONE', 1),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cancelación del pedido por el cliente (enlace de resumen)
+    |--------------------------------------------------------------------------
+    */
+    'order_public_cancel_window_minutes' => (int) env('CATALOG_ORDER_PUBLIC_CANCEL_WINDOW_MINUTES', 30),
 ];

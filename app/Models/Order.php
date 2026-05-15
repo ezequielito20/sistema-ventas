@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -138,6 +139,63 @@ class Order extends Model
     public function summaryUrl(): string
     {
         return route('order.summary.show', ['token' => $this->public_summary_token]);
+    }
+
+    public function canBeCancelledByCustomer(): bool
+    {
+        if ($this->status !== 'pending') {
+            return false;
+        }
+
+        if ($this->paid_at !== null) {
+            return false;
+        }
+
+        if ($this->public_summary_expires_at && $this->public_summary_expires_at->isPast()) {
+            return false;
+        }
+
+        $windowMinutes = max(1, (int) config('catalog.order_public_cancel_window_minutes', 30));
+
+        return $this->created_at !== null
+            && $this->created_at->gte(now()->subMinutes($windowMinutes));
+    }
+
+    public function customerCancelBlockedReason(): ?string
+    {
+        if ($this->status === 'cancelled') {
+            return 'Este pedido ya fue cancelado.';
+        }
+
+        if ($this->status !== 'pending') {
+            return 'Este pedido ya fue procesado por la tienda y no puede cancelarse.';
+        }
+
+        if ($this->paid_at !== null) {
+            return 'La tienda ya registró un pago; contactala si necesitás cambios.';
+        }
+
+        if ($this->public_summary_expires_at && $this->public_summary_expires_at->isPast()) {
+            return 'El enlace de resumen ha expirado.';
+        }
+
+        $windowMinutes = max(1, (int) config('catalog.order_public_cancel_window_minutes', 30));
+        if ($this->created_at && $this->created_at->lt(now()->subMinutes($windowMinutes))) {
+            return 'Pasaron más de '.$windowMinutes.' minutos desde el pedido; contactá a la tienda para cancelar.';
+        }
+
+        return null;
+    }
+
+    public function customerCancelDeadline(): ?Carbon
+    {
+        if (! $this->created_at) {
+            return null;
+        }
+
+        $windowMinutes = max(1, (int) config('catalog.order_public_cancel_window_minutes', 30));
+
+        return $this->created_at->copy()->addMinutes($windowMinutes);
     }
 
     public function currentExchangeRateForDisplay(): float

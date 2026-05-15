@@ -395,6 +395,9 @@ Route::prefix('super-admin')
 // =========================================================================
 Route::get('/resumen/{token}', [OrderSummaryController::class, 'show'])->name('order.summary.show');
 Route::get('/resumen/{token}/pdf', [OrderSummaryController::class, 'pdf'])->name('order.summary.pdf');
+Route::post('/resumen/{token}/cancelar', [OrderSummaryController::class, 'cancel'])
+    ->middleware('throttle:10,1')
+    ->name('order.summary.cancel');
 
 // =========================================================================
 // CATÁLOGO PÚBLICO — fallback routes (MUST be last in file)

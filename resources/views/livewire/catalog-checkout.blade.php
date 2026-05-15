@@ -19,6 +19,11 @@
                    class="mt-6 inline-flex items-center justify-center rounded-xl bg-dv-primary px-6 py-3 text-sm font-bold text-dv-on-primary">
                     {{ __('Ver resumen / monto a pagar') }}
                 </a>
+                @if ($orderForCheckoutSummary->canBeCancelledByCustomer())
+                    <p class="mt-3 text-xs text-dv-on-surface-variant">
+                        {{ __('Si te equivocaste, podés cancelar el pedido desde el resumen (mismo enlace) dentro de los próximos :min minutos.', ['min' => config('catalog.order_public_cancel_window_minutes', 30)]) }}
+                    </p>
+                @endif
             @endif
             <div class="mt-6">
                 <a href="{{ $catalogHomeUrl }}" class="text-sm text-dv-secondary underline">{{ __('Volver al catálogo') }}</a>
