@@ -397,6 +397,44 @@ Route::get('/resumen/{token}', [OrderSummaryController::class, 'show'])->name('o
 Route::get('/resumen/{token}/pdf', [OrderSummaryController::class, 'pdf'])->name('order.summary.pdf');
 
 // =========================================================================
+// MÓDULO HOGAR
+// =========================================================================
+Route::prefix('home')->middleware(['auth', 'home.enabled'])->name('admin.home.')->group(function () {
+    Route::get('/', fn () => view('admin.v2.home.index'))->name('index')
+        ->middleware('can:home.inventory.index');
+
+    // Inventory
+    Route::get('/inventory', fn () => view('admin.v2.home.inventory.index'))->name('inventory.index')
+        ->middleware('can:home.inventory.index');
+    Route::get('/inventory/create', fn () => view('admin.v2.home.inventory.create'))->name('inventory.create')
+        ->middleware('can:home.inventory.create');
+    Route::get('/inventory/{id}/edit', fn ($id) => view('admin.v2.home.inventory.edit', ['productId' => (int) $id]))->name('inventory.edit')
+        ->middleware('can:home.inventory.edit');
+
+    // Shopping List
+    Route::get('/shopping-list', fn () => view('admin.v2.home.shopping-list.index'))->name('shopping-list.index')
+        ->middleware('can:home.shopping_list.index');
+    Route::get('/shopping-list/mobile', fn () => view('admin.v2.home.shopping-list.mobile'))->name('shopping-list.mobile')
+        ->middleware('can:home.shopping_list.index');
+
+    // Finances
+    Route::get('/finances', fn () => view('admin.v2.home.finances.dashboard'))->name('finances.dashboard')
+        ->middleware('can:home.finances.index');
+    Route::get('/finances/services', fn () => view('admin.v2.home.finances.services'))->name('finances.services')
+        ->middleware('can:home.finances.services');
+    Route::get('/finances/bills', fn () => view('admin.v2.home.finances.bills'))->name('finances.bills')
+        ->middleware('can:home.finances.bills');
+    Route::get('/finances/transactions', fn () => view('admin.v2.home.finances.transactions'))->name('finances.transactions')
+        ->middleware('can:home.finances.transactions');
+    Route::get('/finances/accounts', fn () => view('admin.v2.home.finances.accounts'))->name('finances.accounts')
+        ->middleware('can:home.finances.accounts');
+
+    // Scan
+    Route::get('/scan', fn () => view('admin.v2.home.scan.index'))->name('scan.index')
+        ->middleware('can:home.scan_deduct');
+});
+
+// =========================================================================
 // CATÁLOGO PÚBLICO — fallback routes (MUST be last in file)
 // =========================================================================
 Route::middleware('throttle:120,1')->group(function () {

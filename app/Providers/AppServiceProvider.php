@@ -2,8 +2,20 @@
 
 namespace App\Providers;
 
+use App\Models\Home\HomeBankConnection;
+use App\Models\Home\HomeProduct;
+use App\Models\Home\HomeService;
+use App\Models\Home\HomeServiceBill;
+use App\Models\Home\HomeShoppingList;
+use App\Models\Home\HomeTransaction;
 use App\Models\Order;
 use App\Models\User;
+use App\Policies\Home\HomeBankConnectionPolicy;
+use App\Policies\Home\HomeProductPolicy;
+use App\Policies\Home\HomeServiceBillPolicy;
+use App\Policies\Home\HomeServicePolicy;
+use App\Policies\Home\HomeShoppingListPolicy;
+use App\Policies\Home\HomeTransactionPolicy;
 use App\Services\PlanEntitlementService;
 use Illuminate\Foundation\Vite;
 use Illuminate\Support\Facades\Auth;
@@ -92,6 +104,14 @@ class AppServiceProvider extends ServiceProvider
                 return app(PlanEntitlementService::class)->userCanAccessModule($user, $moduleKey);
             });
         });
+
+        // Registrar políticas del Módulo Hogar
+        Gate::policy(HomeProduct::class, HomeProductPolicy::class);
+        Gate::policy(HomeService::class, HomeServicePolicy::class);
+        Gate::policy(HomeServiceBill::class, HomeServiceBillPolicy::class);
+        Gate::policy(HomeTransaction::class, HomeTransactionPolicy::class);
+        Gate::policy(HomeShoppingList::class, HomeShoppingListPolicy::class);
+        Gate::policy(HomeBankConnection::class, HomeBankConnectionPolicy::class);
 
         // Comentado temporalmente para evitar N+1 queries
         // La variable company se manejará directamente en los controladores

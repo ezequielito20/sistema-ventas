@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureCompanyIsActive;
+use App\Http\Middleware\EnsureHomeModuleEnabled;
 use App\Http\Middleware\EnsureSecurityQuestionsSetUp;
 use App\Http\Middleware\EnsureTenantCatalogCheckoutModule;
 use App\Http\Middleware\EnsureTenantCatalogOrdersSection;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'superadmin' => EnsureUserIsSuperAdmin::class,
             'tenant.catalog-checkout' => EnsureTenantCatalogCheckoutModule::class,
             'tenant.orders' => EnsureTenantCatalogOrdersSection::class,
+            'home.enabled' => EnsureHomeModuleEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

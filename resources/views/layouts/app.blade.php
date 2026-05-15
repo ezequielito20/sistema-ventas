@@ -598,6 +598,49 @@
                             @endif
                         @endcan
 
+                        @if ($planMod('home'))
+                        <!-- Módulo Hogar -->
+                        <div
+                            x-data="{ open: {{ request()->routeIs('admin.home.*') ? 'true' : 'false' }} }">
+                            <button @click="open = !open" type="button"
+                                class="app-sidebar-parent-btn group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-home mr-3 text-lg text-slate-400"></i>
+                                    Hogar
+                                </div>
+                                <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+                                    :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="transform opacity-0 scale-95"
+                                x-transition:enter-end="transform opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="transform opacity-100 scale-100"
+                                x-transition:leave-end="transform opacity-0 scale-95" class="ml-6 mt-1 space-y-1">
+                                <a href="{{ route('admin.home.index') }}"
+                                    class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.home.index') ? 'is-active' : '' }}">
+                                    Dashboard
+                                </a>
+                                <a href="{{ route('admin.home.inventory.index') }}"
+                                    class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.home.inventory.*') ? 'is-active' : '' }}">
+                                    Inventario
+                                </a>
+                                <a href="{{ route('admin.home.shopping-list.index') }}"
+                                    class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.home.shopping-list.*') ? 'is-active' : '' }}">
+                                    Lista de mercado
+                                </a>
+                                <a href="{{ route('admin.home.finances.dashboard') }}"
+                                    class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.home.finances.*') ? 'is-active' : '' }}">
+                                    Finanzas
+                                </a>
+                                <a href="{{ route('admin.home.scan.index') }}"
+                                    class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.home.scan.*') ? 'is-active' : '' }}">
+                                    Escaner
+                                </a>
+                            </div>
+                        </div>
+                        @endif
+
                         @if ($planMod('roles') || $planMod('permissions'))
                         <!-- Roles y Permisos -->
                         <div

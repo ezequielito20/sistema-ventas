@@ -161,6 +161,14 @@ return [
             'platform_console_only' => false,
             'in_plan_form' => false,
         ],
+        'home' => [
+            'label' => 'Módulo Hogar',
+            'permission_prefixes' => ['home'],
+            'limit_relation' => null,
+            'super_admin_only' => false,
+            'platform_console_only' => false,
+            'in_plan_form' => true,
+        ],
         'scanner' => [
             'label' => 'Escáner de precios',
             'permission_prefixes' => [],
