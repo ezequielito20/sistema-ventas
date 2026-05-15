@@ -30,8 +30,15 @@
                 <ul class="mt-4 space-y-3">
                     @foreach ($cartItems as $row)
                         <li class="flex justify-between gap-3 text-sm">
-                            <span class="text-dv-on-surface">{{ $row['name'] }} × {{ $row['quantity'] }}</span>
-                            <span class="text-dv-primary">${{ number_format($row['line_usd'], 2) }}</span>
+                            <span class="min-w-0 text-dv-on-surface">
+                                {{ $row['name'] }} × {{ $row['quantity'] }}
+                                @if (($row['quantity'] ?? 1) > 1)
+                                    <span class="mt-0.5 block text-xs text-dv-on-surface-variant/90">
+                                        {{ __('Por unidad:') }} ${{ number_format($row['unit_usd'], 2) }}
+                                    </span>
+                                @endif
+                            </span>
+                            <span class="shrink-0 whitespace-nowrap text-dv-primary">${{ number_format($row['line_usd'], 2) }}</span>
                         </li>
                     @endforeach
                 </ul>
@@ -92,12 +99,12 @@
                     </div>
                 @endif
 
-                @if ($this->slots->isNotEmpty())
+                @if ($this->deliverySlots->isNotEmpty())
                     <div>
                         <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Horario') }}</label>
                         <select wire:model="delivery_slot_id" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
                             <option value="">{{ __('Seleccionar…') }}</option>
-                            @foreach ($this->slots as $s)
+                            @foreach ($this->deliverySlots as $s)
                                 <option value="{{ $s->id }}">{{ $s->starts_at->format('d/m H:i') }} – {{ $s->ends_at->format('H:i') }}</option>
                             @endforeach
                         </select>

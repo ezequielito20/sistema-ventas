@@ -105,7 +105,7 @@ class CatalogCheckout extends Component
             ->get();
     }
 
-    public function getSlotsProperty(): Collection
+    public function getDeliverySlotsProperty(): Collection
     {
         if (! $this->company_delivery_method_id) {
             return collect();
@@ -159,7 +159,7 @@ class CatalogCheckout extends Component
             ]);
         }
 
-        if ($this->slots->isNotEmpty()) {
+        if ($this->deliverySlots->isNotEmpty()) {
             $this->validate([
                 'delivery_slot_id' => 'required|integer|exists:delivery_slots,id',
             ]);
