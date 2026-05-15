@@ -2,10 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\PlanEntitlementService;
 use App\Services\RoleService;
+use App\Support\ModuleRegistry;
 use App\Support\PermissionFriendlyNames;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -182,7 +184,16 @@ class RolesIndex extends Component
 
         $this->permissionsRoleId = $role->id;
         $this->permissionsRoleName = $role->name;
-        $this->selectedPermissionIds = $role->permissions->pluck('id')->map(fn ($pid) => (int) $pid)->values()->all();
+
+        $allowed = app(PlanEntitlementService::class)->allowedPermissionIdsForTenantCompany((int) Auth::user()->company_id);
+        $allowedSet = array_flip($allowed);
+        $this->selectedPermissionIds = $role->permissions
+            ->pluck('id')
+            ->map(fn ($pid) => (int) $pid)
+            ->filter(fn (int $pid) => isset($allowedSet[$pid]))
+            ->values()
+            ->all();
+
         $this->permissionSearch = '';
         $this->showPermissionsModal = true;
     }
@@ -230,7 +241,12 @@ class RolesIndex extends Component
             DB::commit();
 
             $this->closePermissionsModal();
-            $this->toast('Permisos actualizados correctamente.', 'success');
+            $stripped = count($ids) - count($valid);
+            if ($stripped > 0) {
+                $this->toast('Permisos guardados. Se omitieron '.$stripped.' permiso(s) que no están incluidos en el plan actual de la empresa.', 'warning');
+            } else {
+                $this->toast('Permisos actualizados correctamente.', 'success');
+            }
         } catch (\Exception $e) {
             DB::rollBack();
             $this->toast($e->getMessage(), 'error');
@@ -239,7 +255,7 @@ class RolesIndex extends Component
 
     public function toggleModulePermissions(string $module): void
     {
-        $grouped = $this->permissionsGroupedForTenant();
+        $grouped = $this->permissionsGroupedForRoleModal();
         $group = $grouped->get($module);
         if (! $group) {
             return;
@@ -258,8 +274,16 @@ class RolesIndex extends Component
     public function selectAllPermissions(bool $select): void
     {
         if ($select) {
-            $allowed = app(PlanEntitlementService::class)->allowedPermissionIdsForTenantCompany((int) Auth::user()->company_id);
-            $this->selectedPermissionIds = Permission::query()->whereIn('id', $allowed)->pluck('id')->map(fn ($id) => (int) $id)->all();
+            $companyId = (int) Auth::user()->company_id;
+            $visibleIds = $this->permissionsGroupedForRoleModal()
+                ->flatten(1)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+            $allowed = app(PlanEntitlementService::class)->allowedPermissionIdsForTenantCompany($companyId);
+            $this->selectedPermissionIds = array_values(array_intersect($visibleIds, $allowed));
         } else {
             $this->selectedPermissionIds = [];
         }
@@ -454,14 +478,39 @@ class RolesIndex extends Component
         }
     }
 
-    protected function permissionsGroupedForTenant(): Collection
+    /**
+     * Agrupa permisos por prefijo (como el panel clásico): se muestra una tarjeta
+     * por cada módulo al que la empresa tiene acceso según su plan; dentro van
+     * todas las acciones (crear, editar, etc.). Los módulos fuera del plan no aparecen.
+     * Prefijos sin módulo en plan_modules solo se listan si hay al menos un permiso asignable.
+     */
+    protected function permissionsGroupedForRoleModal(): Collection
     {
-        $companyId = (int) Auth::user()->company_id;
-        $allowed = app(PlanEntitlementService::class)->allowedPermissionIdsForTenantCompany($companyId);
+        $company = Company::query()->findOrFail((int) Auth::user()->company_id);
+        $planService = app(PlanEntitlementService::class);
+        $allowedFlip = array_flip($planService->allowedPermissionIdsForTenantCompany($company->id));
 
-        return PermissionFriendlyNames::grouped()
-            ->map(fn ($group) => $group->filter(fn ($p) => in_array((int) $p->id, $allowed, true)))
-            ->filter(fn ($group) => $group->isNotEmpty());
+        $out = collect();
+
+        foreach (PermissionFriendlyNames::grouped() as $prefix => $group) {
+            $moduleKey = ModuleRegistry::permissionPrefixToModuleKey()[$prefix] ?? null;
+
+            if ($moduleKey !== null) {
+                if (! $planService->companyHasModule($company, $moduleKey)) {
+                    continue;
+                }
+                $out->put($prefix, $group);
+
+                continue;
+            }
+
+            $filtered = $group->filter(fn ($p) => isset($allowedFlip[(int) $p->id]));
+            if ($filtered->isNotEmpty()) {
+                $out->put($prefix, $filtered);
+            }
+        }
+
+        return $out;
     }
 
     protected function rolesQuery()
@@ -488,7 +537,7 @@ class RolesIndex extends Component
 
     public function render(): View
     {
-        $companyId = Auth::user()->company_id;
+        $companyId = (int) Auth::user()->company_id;
 
         $roles = $this->rolesQuery()->paginate($this->perPage);
         $currentPageRoleIds = $roles->pluck('id')->map(fn ($id) => (int) $id)->all();
@@ -515,7 +564,7 @@ class RolesIndex extends Component
             'roles' => $roles,
             'stats' => $stats,
             'permFlags' => $permFlags,
-            'permissionsGrouped' => $this->permissionsGroupedForTenant(),
+            'permissionsGrouped' => $this->permissionsGroupedForRoleModal(),
             'currentPageRoleIds' => $currentPageRoleIds,
             'allCurrentPageSelected' => $allCurrentPageSelected,
         ]);

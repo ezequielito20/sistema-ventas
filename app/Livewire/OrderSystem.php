@@ -2,13 +2,10 @@
 
 namespace App\Livewire;
 
-use App\Models\Order;
-use App\Models\Product;
 use App\Models\Customer;
-use App\Models\Notification;
-use Livewire\Component;
+use App\Models\Product;
 use Livewire\Attributes\Rule;
-use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class OrderSystem extends Component
 {
@@ -18,19 +15,19 @@ class OrderSystem extends Component
     // Order form fields
     #[Rule('required|string|min:10|max:15')]
     public $phone = '';
-    
+
     #[Rule('required_if:customer_exists,false|string|max:255')]
     public $customer_name = '';
-    
+
     #[Rule('required_if:customer_exists,false|string|max:100')]
     public $department = '';
-    
+
     #[Rule('required|exists:products,id')]
     public $product_id = '';
-    
+
     #[Rule('required|integer|min:1')]
     public $quantity = 1;
-    
+
     #[Rule('nullable|string|max:1000')]
     public $notes = '';
 
@@ -40,13 +37,21 @@ class OrderSystem extends Component
 
     // State variables
     public $customer_exists = false;
+
     public $existing_customer = null;
+
     public $products = [];
+
     public $selected_product = null;
+
     public $total_price = 0;
+
     public $customer_debt = null;
+
     public $lookup_customer = null;
+
     public $show_success_message = false;
+
     public $success_message = '';
 
     public function mount()
@@ -66,12 +71,12 @@ class OrderSystem extends Component
     {
         // Remover todos los caracteres no numéricos
         $normalized = preg_replace('/[^0-9]/', '', $phone);
-        
+
         // Si empieza con 0, removerlo
         if (strlen($normalized) > 10 && substr($normalized, 0, 1) === '0') {
             $normalized = substr($normalized, 1);
         }
-        
+
         return $normalized;
     }
 
@@ -114,13 +119,16 @@ class OrderSystem extends Component
     public function checkCustomerExists()
     {
         $normalizedPhone = $this->normalizePhone($this->phone);
-        
+
         // Buscar cliente con búsqueda flexible
         $customer = Customer::where('company_id', 1)
             ->get()
-            ->filter(function($customer) use ($normalizedPhone) {
-                if (empty($customer->phone)) return false;
+            ->filter(function ($customer) use ($normalizedPhone) {
+                if (empty($customer->phone)) {
+                    return false;
+                }
                 $customerPhone = $this->normalizePhone($customer->phone);
+
                 return $customerPhone === $normalizedPhone;
             })
             ->first();
@@ -139,13 +147,16 @@ class OrderSystem extends Component
     public function lookupCustomerDebt()
     {
         $normalizedPhone = $this->normalizePhone($this->lookup_phone);
-        
+
         // Buscar cliente con búsqueda flexible
         $customer = Customer::where('company_id', 1)
             ->get()
-            ->filter(function($customer) use ($normalizedPhone) {
-                if (empty($customer->phone)) return false;
+            ->filter(function ($customer) use ($normalizedPhone) {
+                if (empty($customer->phone)) {
+                    return false;
+                }
                 $customerPhone = $this->normalizePhone($customer->phone);
+
                 return $customerPhone === $normalizedPhone;
             })
             ->first();
@@ -192,68 +203,8 @@ class OrderSystem extends Component
 
     public function submitOrder()
     {
-        // Validate based on customer existence
-        if ($this->customer_exists) {
-            $this->validate([
-                'phone' => 'required|string|min:10|max:15',
-                'product_id' => 'required|exists:products,id',
-                'quantity' => 'required|integer|min:1',
-                'notes' => 'nullable|string|max:1000',
-            ]);
-        } else {
-            $this->validate([
-                'phone' => 'required|string|min:10|max:15',
-                'customer_name' => 'required|string|max:255',
-                'department' => 'required|string|max:100',
-                'product_id' => 'required|exists:products,id',
-                'quantity' => 'required|integer|min:1',
-                'notes' => 'nullable|string|max:1000',
-            ]);
-        }
+        $this->addError('general', 'Este formulario de pedidos ya no está disponible. Usá el catálogo público de la empresa.');
 
-        // Check stock availability
-        if ($this->selected_product->stock < $this->quantity) {
-            $this->addError('quantity', 'No hay suficiente stock disponible. Stock actual: ' . $this->selected_product->stock);
-            return;
-        }
-
-        DB::beginTransaction();
-        
-        try {
-            // Create the order
-            $order = Order::create([
-                'customer_name' => $this->customer_exists 
-                    ? $this->existing_customer->name 
-                    : $this->customer_name . ' - ' . $this->department,
-                'customer_phone' => $this->phone,
-                'product_id' => $this->product_id,
-                'quantity' => $this->quantity,
-                'unit_price' => $this->selected_product->sale_price,
-                'total_price' => $this->total_price,
-                'notes' => $this->notes,
-                'status' => 'pending',
-                'customer_id' => $this->customer_exists ? $this->existing_customer->id : null,
-            ]);
-
-            // Create notification for admin
-            Notification::createOrderNotification($order);
-
-            DB::commit();
-
-            // Show success message
-            $this->show_success_message = true;
-            $this->success_message = '¡Pedido enviado exitosamente! Te contactaremos pronto para confirmar tu pedido.';
-
-            // Reset form
-            $this->resetOrderForm();
-
-            // Auto-hide success message after 5 seconds
-            $this->dispatch('hide-success-message');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            $this->addError('general', 'Error al procesar el pedido. Por favor intenta nuevamente.');
-        }
     }
 
     public function resetOrderForm()

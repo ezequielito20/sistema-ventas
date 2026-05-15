@@ -419,7 +419,9 @@
                 <div class="ui-panel__header shrink-0">
                     <div>
                         <h3 class="ui-panel__title">Permisos · {{ $permissionsRoleName }}</h3>
-                        <p class="ui-panel__subtitle">Marca los permisos y guarda. Los roles de sistema no se listan como editables desde el servidor.</p>
+                        <p class="ui-panel__subtitle">
+                            Solo aparecen módulos incluidos en el plan de tu empresa; en cada tarjeta podés marcar las acciones (listar, crear, editar, reportes, etc.). Los roles de sistema no se editan desde aquí.
+                        </p>
                     </div>
                     <button type="button" wire:click="closePermissionsModal" class="ui-btn ui-btn-ghost px-2 py-1 text-lg leading-none">&times;</button>
                 </div>

@@ -3,26 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    /**
-     * Display a listing of notifications.
-     */
     public function index()
     {
-        $notifications = Notification::where('user_id', Auth::id())
+        $companyId = Auth::user()->company_id;
+
+        $notifications = Notification::query()
+            ->where('user_id', Auth::id())
+            ->when($companyId, fn ($q) => $q->where(function ($q2) use ($companyId) {
+                $q2->whereNull('company_id')->orWhere('company_id', $companyId);
+            }))
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
         return view('admin.notifications.index', compact('notifications'));
     }
 
-    /**
-     * Mark notification as read.
-     */
     public function markAsRead(Notification $notification)
     {
         if ($notification->user_id !== Auth::id()) {
@@ -38,30 +37,42 @@ class NotificationController extends Controller
         return redirect()->back()->with('success', 'Notificación marcada como leída.');
     }
 
-    /**
-     * Get unread notifications count.
-     */
     public function getUnreadCount()
     {
-        $count = Notification::where('user_id', Auth::id())
-            ->pendingOrders()
+        if (! Auth::user()?->can('orders.index')) {
+            return response()->json(['count' => 0]);
+        }
+
+        $companyId = Auth::user()->company_id;
+
+        $count = Notification::query()
+            ->where('user_id', Auth::id())
+            ->where('is_read', false)
+            ->where('type', 'new_order')
+            ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->pendingOrderAlerts()
             ->count();
 
         return response()->json(['count' => $count]);
     }
 
-    /**
-     * Get recent unread notifications for dropdown.
-     */
     public function getRecentNotifications()
     {
-        $notifications = Notification::where('user_id', Auth::id())
-            ->pendingOrders()
+        if (! Auth::user()?->can('orders.index')) {
+            return response()->json(['notifications' => []]);
+        }
+
+        $companyId = Auth::user()->company_id;
+
+        $notifications = Notification::query()
+            ->where('user_id', Auth::id())
+            ->where('type', 'new_order')
+            ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->pendingOrderAlerts()
             ->orderBy('created_at', 'desc')
-            ->limit(10)
+            ->limit(20)
             ->get();
 
-        // Agregar el atributo time_ago a cada notificación
         $notifications->each(function ($notification) {
             $notification->time_ago = $notification->created_at->diffForHumans();
         });
@@ -69,12 +80,10 @@ class NotificationController extends Controller
         return response()->json(['notifications' => $notifications]);
     }
 
-    /**
-     * Mark all notifications as read.
-     */
     public function markAllAsRead()
     {
-        Notification::where('user_id', Auth::id())
+        Notification::query()
+            ->where('user_id', Auth::id())
             ->unread()
             ->update(['is_read' => true, 'read_at' => now()]);
 

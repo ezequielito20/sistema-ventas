@@ -9,10 +9,12 @@ use App\Models\Currency;
 use App\Models\State;
 use App\Models\User;
 use App\Services\ImageUrlService;
+use App\Support\CatalogUrlGenerator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -236,6 +238,30 @@ class SettingsIndex extends Component
 
             return $this->redirect(route('admin.company.edit'));
         }
+    }
+
+    #[Computed]
+    public function privateCatalogInviteUrl(): ?string
+    {
+        if ($this->catalog_is_public || trim($this->slug) === '') {
+            return null;
+        }
+        $company = Company::query()->find(Auth::user()->company_id);
+        if (! $company) {
+            return null;
+        }
+        $company->slug = $this->slug;
+        $company->catalog_is_public = false;
+
+        return CatalogUrlGenerator::catalogIndex($company);
+    }
+
+    #[Computed]
+    public function privateCatalogInviteExpiresLabel(): string
+    {
+        $days = (int) config('catalog.private_catalog_signed_link_days', 7);
+
+        return $days === 1 ? '1 día' : $days.' días';
     }
 
     public function render(): View

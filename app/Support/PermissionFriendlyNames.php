@@ -98,6 +98,13 @@ final class PermissionFriendlyNames
             'companies.create' => 'Crear configuración inicial',
             'companies.store' => 'Guardar configuración inicial',
             'companies.update' => 'Actualizar configuración',
+
+            'orders.index' => 'Ver pedidos desde catálogo',
+            'orders.update' => 'Actualizar pedidos (pago, entrega, resumen)',
+            'orders.cancel' => 'Cancelar pedidos pendientes',
+            'orders.settings' => 'Configurar pago y entrega del catálogo',
+
+            'my-plan.view' => 'Ver resumen del plan y límites de la suscripción',
         ];
     }
 

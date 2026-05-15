@@ -26,6 +26,10 @@
 
 @push('scripts')
 <script>
+window.__CATALOG_PRODUCTS__ = [];
+window.__CATALOG_CART_URLS__ = @json($catalogCartUrls ?? []);
+</script>
+<script>
 window.__CATALOG_GALLERY_IMAGES__ = {{ Js::from($product->images->isNotEmpty()
     ? $product->images
         ->sortBy(fn ($img) => $img->is_cover ? -1 : $img->sort_order)
@@ -51,6 +55,7 @@ window.shareCatalogProduct = async function (title, url) {
 @endpush
 
 @section('content')
+<div class="font-dv-body min-w-0 max-w-full overflow-x-hidden" x-data="catalog">
     @include('catalog.partials.product-nav', ['company' => $company, 'productName' => $product->name])
 
     <div class="mx-auto max-w-dv px-margin-mobile pb-24 pt-20 sm:px-6 sm:pt-24 lg:px-margin-desktop lg:pb-12">
@@ -158,6 +163,10 @@ window.shareCatalogProduct = async function (title, url) {
                             <span class="h-2 w-2 animate-pulse rounded-full bg-dv-secondary"></span>
                             {{ $product->stock }} {{ __('disponibles') }}
                         </div>
+                        <button type="button" @click="addToCart({{ $product->id }}, 1)"
+                                class="mt-4 w-full rounded-xl border border-dv-primary/50 bg-dv-primary/15 py-3 text-sm font-bold text-dv-primary transition hover:bg-dv-primary/25">
+                            {{ __('Agregar al pedido') }}
+                        </button>
                     @endif
                 </div>
 
@@ -244,4 +253,5 @@ window.shareCatalogProduct = async function (title, url) {
             <i class="fab fa-whatsapp text-xl"></i>{{ __('Consultar por WhatsApp') }}
         </a>
     @endif
+</div>
 @endsection

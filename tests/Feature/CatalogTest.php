@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Company;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class CatalogTest extends TestCase
@@ -42,6 +43,19 @@ class CatalogTest extends TestCase
         $response = $this->get('/hidden-co');
 
         $response->assertStatus(404);
+    }
+
+    public function test_private_catalog_accepts_valid_signed_url(): void
+    {
+        $company = Company::factory()->create([
+            'name' => 'Signed Co',
+            'slug' => 'signed-co',
+            'catalog_is_public' => false,
+        ]);
+
+        $url = URL::temporarySignedRoute('catalog.index', now()->addHour(), ['company' => $company->slug]);
+
+        $this->get($url)->assertStatus(200);
     }
 
     /**

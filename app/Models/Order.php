@@ -2,136 +2,143 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
     protected $fillable = [
+        'company_id',
         'customer_name',
         'customer_phone',
-        'product_id',
-        'quantity',
-        'unit_price',
-        'total_price',
         'notes',
         'status',
+        'paid_at',
+        'delivered_at',
+        'company_payment_method_id',
+        'company_delivery_method_id',
+        'delivery_zone_id',
+        'delivery_slot_id',
+        'exchange_rate_used',
+        'subtotal_products_usd',
+        'payment_discount_percent_snapshot',
+        'payment_discount_amount_usd',
+        'delivery_fee_usd',
+        'total_usd',
+        'total_bs',
+        'public_summary_token',
+        'public_summary_expires_at',
+        'payment_method_snapshot',
+        'delivery_method_snapshot',
         'customer_id',
         'sale_id',
         'processed_at',
         'processed_by',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'unit_price' => 'decimal:2',
-        'total_price' => 'decimal:2',
-        'processed_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Get the product associated with the order.
-     */
-    public function product(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(Product::class);
+        return [
+            'paid_at' => 'datetime',
+            'delivered_at' => 'datetime',
+            'public_summary_expires_at' => 'datetime',
+            'processed_at' => 'datetime',
+            'exchange_rate_used' => 'decimal:4',
+            'subtotal_products_usd' => 'decimal:2',
+            'payment_discount_percent_snapshot' => 'decimal:2',
+            'payment_discount_amount_usd' => 'decimal:2',
+            'delivery_fee_usd' => 'decimal:2',
+            'total_usd' => 'decimal:2',
+            'total_bs' => 'decimal:2',
+        ];
     }
 
-    /**
-     * Get the customer associated with the order.
-     */
+    protected static function booted(): void
+    {
+        static::saving(function (Order $order): void {
+            if ($order->status === 'cancelled') {
+                return;
+            }
+            if ($order->paid_at && $order->delivered_at) {
+                $order->status = 'processed';
+                $order->processed_at = $order->processed_at ?? now();
+            }
+        });
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(CompanyPaymentMethod::class, 'company_payment_method_id');
+    }
+
+    public function deliveryMethod(): BelongsTo
+    {
+        return $this->belongsTo(CompanyDeliveryMethod::class, 'company_delivery_method_id');
+    }
+
+    public function deliveryZone(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryZone::class, 'delivery_zone_id');
+    }
+
+    public function deliverySlot(): BelongsTo
+    {
+        return $this->belongsTo(DeliverySlot::class, 'delivery_slot_id');
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
-    /**
-     * Get the sale generated from this order.
-     */
     public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);
     }
 
-    /**
-     * Get the user who processed the order.
-     */
     public function processedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'processed_by');
     }
 
-    /**
-     * Scope for pending orders.
-     */
-    public function scopePending($query)
+    public function scopePending(Builder $query): Builder
     {
         return $query->where('status', 'pending');
     }
 
-    /**
-     * Scope for processed orders.
-     */
-    public function scopeProcessed($query)
+    public function scopeForCompany(Builder $query, int $companyId): Builder
     {
-        return $query->where('status', 'processed');
+        return $query->where('company_id', $companyId);
     }
 
-    /**
-     * Scope for cancelled orders.
-     */
-    public function scopeCancelled($query)
+    public static function generateSummaryToken(): string
     {
-        return $query->where('status', 'cancelled');
+        return Str::random(48);
     }
 
-    /**
-     * Get formatted status.
-     */
-    public function getStatusLabelAttribute(): string
+    public function summaryUrl(): string
     {
-        return [
-            'pending' => 'Pendiente',
-            'processed' => 'Procesado',
-            'cancelled' => 'Cancelado'
-        ][$this->status] ?? 'Desconocido';
+        return route('order.summary.show', ['token' => $this->public_summary_token]);
     }
 
-    /**
-     * Get formatted total price.
-     */
-    public function getFormattedTotalAttribute(): string
+    public function currentExchangeRateForDisplay(): float
     {
-        return '$' . number_format((float) $this->total_price, 2);
-    }
-
-    /**
-     * Get formatted created date.
-     */
-    public function getFormattedDateAttribute(): string
-    {
-        return $this->created_at->format('d/m/Y H:i');
-    }
-
-    /**
-     * Get order summary for notifications.
-     */
-    public function getSummaryAttribute(): string
-    {
-        return "{$this->customer_name} - {$this->product->name} x{$this->quantity} - {$this->formatted_total}";
+        return (float) ($this->exchange_rate_used ?: ExchangeRate::current());
     }
 }

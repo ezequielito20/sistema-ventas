@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
 use App\Http\Controllers\Auth\SecurityQuestionsController;
 use App\Http\Controllers\CashCountController;
+use App\Http\Controllers\CatalogCheckoutPageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
@@ -14,8 +15,10 @@ use App\Http\Controllers\DebtPaymentController;
 use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderSummaryController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PublicCatalogCartController;
 use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RoleController;
@@ -283,12 +286,19 @@ Route::prefix('admin/debt-payments')->middleware(['auth'])->group(function () {
     Route::delete('/sale/{saleId}/all', [DebtPaymentController::class, 'deletePaymentsBySale'])->name('admin.debt-payments.delete-by-sale');
 });
 
+Route::get('/admin/order-catalog-settings', fn () => view('admin.order-catalog-settings.index'))
+    ->name('admin.order-catalog-settings.index')
+    ->middleware(['auth', 'can:orders.settings']);
+
 // Rutas para manejo de pedidos (Admin)
-Route::prefix('admin/orders')->middleware(['auth'])->group(function () {
+Route::prefix('admin/orders')->middleware(['auth', 'can:orders.index'])->group(function () {
     Route::get('/', [OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
-    Route::post('/{order}/process', [OrderController::class, 'process'])->name('admin.orders.process');
-    Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('admin.orders.cancel');
+    Route::get('/{order}/pdf', [OrderController::class, 'pdf'])->middleware('can:orders.update')->name('admin.orders.pdf');
+    Route::post('/{order}/paid', [OrderController::class, 'markPaid'])->middleware('can:orders.update')->name('admin.orders.paid');
+    Route::post('/{order}/delivered', [OrderController::class, 'markDelivered'])->middleware('can:orders.update')->name('admin.orders.delivered');
+    Route::post('/{order}/regenerate-summary', [OrderController::class, 'regenerateSummary'])->middleware('can:orders.update')->name('admin.orders.regenerate-summary');
+    Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->middleware('can:orders.cancel')->name('admin.orders.cancel');
 });
 
 // Rutas para notificaciones (Admin)
@@ -336,8 +346,22 @@ Route::prefix('super-admin')
     });
 
 // =========================================================================
+// Resumen público de pedido (token)
+// =========================================================================
+Route::get('/resumen/{token}', [OrderSummaryController::class, 'show'])->name('order.summary.show');
+Route::get('/resumen/{token}/pdf', [OrderSummaryController::class, 'pdf'])->name('order.summary.pdf');
+
+// =========================================================================
 // CATÁLOGO PÚBLICO — fallback routes (MUST be last in file)
 // =========================================================================
+Route::middleware('throttle:120,1')->group(function () {
+    Route::get('/{company:slug}/catalog-api/cart', [PublicCatalogCartController::class, 'show'])->name('catalog.cart.show');
+    Route::post('/{company:slug}/catalog-api/cart/sync', [PublicCatalogCartController::class, 'sync'])->name('catalog.cart.sync');
+    Route::delete('/{company:slug}/catalog-api/cart/{product}', [PublicCatalogCartController::class, 'remove'])->name('catalog.cart.remove');
+});
+
+Route::get('/{company:slug}/checkout', [CatalogCheckoutPageController::class, 'show'])->name('catalog.checkout');
+
 Route::get('/{company:slug}/og-logo', [PublicCatalogController::class, 'ogLogo'])
     ->name('catalog.og-logo');
 Route::get('/{company:slug}', [PublicCatalogController::class, 'index'])

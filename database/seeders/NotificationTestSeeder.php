@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Notification;
+use Illuminate\Database\Seeder;
 
 class NotificationTestSeeder extends Seeder
 {
@@ -15,6 +15,8 @@ class NotificationTestSeeder extends Seeder
         // Crear notificaciones de prueba
         Notification::create([
             'user_id' => 1,
+            'company_id' => 1,
+            'order_id' => null,
             'type' => 'new_order',
             'title' => 'Nuevo Pedido Recibido',
             'message' => 'Nuevo pedido de Cliente Prueba: Producto Test x2',
@@ -32,6 +34,8 @@ class NotificationTestSeeder extends Seeder
 
         Notification::create([
             'user_id' => 1,
+            'company_id' => 1,
+            'order_id' => null,
             'type' => 'new_order',
             'title' => 'Pedido Urgente',
             'message' => 'Pedido urgente de María García: Laptop Gaming x1',

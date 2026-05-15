@@ -243,7 +243,7 @@
                 </div>
 
                 {{-- Preview URL --}}
-                @if($slug)
+                @if($slug && $catalog_is_public)
                     <div class="mt-4 p-4 rounded-xl bg-slate-800/60 border border-slate-700">
                         <div class="flex items-center justify-between gap-4">
                             <div class="flex-1 min-w-0">
@@ -264,6 +264,25 @@
                                     <i class="fas fa-external-link-alt mr-1"></i> Ver catálogo
                                 </a>
                             </div>
+                        </div>
+                    </div>
+                @elseif($slug && !$catalog_is_public)
+                    <div class="mt-4 p-4 rounded-xl bg-rose-950/30 border border-rose-500/30">
+                        <div class="flex flex-col gap-3">
+                            <p class="text-xs text-rose-200/90">
+                                Catálogo oculto: compartí este enlace firmado. Caduca en {{ $this->privateCatalogInviteExpiresLabel }}.
+                                La primera visita desbloquea la sesión del navegador para carrito y checkout hasta esa fecha.
+                            </p>
+                            @if($this->privateCatalogInviteUrl)
+                                <p class="text-xs text-slate-400 break-all font-mono leading-relaxed">{{ $this->privateCatalogInviteUrl }}</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button"
+                                            onclick="navigator.clipboard.writeText(@js($this->privateCatalogInviteUrl))"
+                                            class="px-3 py-1.5 text-xs rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white transition">
+                                        <i class="fas fa-copy mr-1"></i> Copiar enlace firmado
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endif

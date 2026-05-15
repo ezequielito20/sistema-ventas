@@ -55,6 +55,11 @@ class PlanEntitlementService
 
     public function companyHasModule(Company $company, string $moduleKey): bool
     {
+        $def = ModuleRegistry::modules()[$moduleKey] ?? null;
+        if ($def && ! empty($def['always_visible_for_tenant'])) {
+            return true;
+        }
+
         $plan = $company->plan;
         if (! $plan || ! $plan->is_active) {
             return false;

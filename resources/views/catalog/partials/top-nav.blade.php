@@ -45,6 +45,13 @@
         @endif
 
         <div class="flex shrink-0 items-center gap-2 sm:gap-4">
+            <a x-show="cartQtyTotal > 0" x-cloak :href="cartUrls.checkout"
+               class="relative flex items-center gap-2 rounded-xl border border-dv-primary/40 bg-dv-primary/10 px-3 py-2 text-sm font-semibold text-dv-primary transition hover:bg-dv-primary/20">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="hidden sm:inline">{{ __('Pedido') }}</span>
+                <span class="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-dv-secondary px-1 text-[10px] font-bold text-white"
+                      x-text="cartQtyTotal"></span>
+            </a>
             @if($company->ig)
                 <a href="https://instagram.com/{{ $company->ig }}" target="_blank" rel="noopener"
                    class="hidden text-dv-on-surface-variant transition hover:text-dv-secondary xs:flex md:inline-flex md:items-center md:gap-1.5">

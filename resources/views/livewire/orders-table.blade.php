@@ -1,369 +1,51 @@
-<div class="card" x-data="ordersTable()">
-    <!-- Filtros de estado -->
-    <div class="card-header">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h3 class="card-title">Filtros de Estado</h3>
-                <p class="card-subtitle">Selecciona el estado de los pedidos que deseas ver</p>
-            </div>
-
-            <div class="mt-4 sm:mt-0">
-                <div class="flex flex-wrap gap-2">
-                    <button wire:click="$set('status', '')"
-                        class="btn-outline {{ $status === '' ? 'bg-blue-50 border-blue-300 text-blue-700' : '' }}">
-                        <i class="fas fa-list mr-2"></i>Todos
-                    </button>
-                    <button wire:click="$set('status', 'pending')"
-                        class="btn-outline {{ $status === 'pending' ? 'bg-yellow-50 border-yellow-300 text-yellow-700' : '' }}">
-                        <i class="fas fa-clock mr-2"></i>Pendientes
-                    </button>
-                    <button wire:click="$set('status', 'processed')"
-                        class="btn-outline {{ $status === 'processed' ? 'bg-green-50 border-green-300 text-green-700' : '' }}">
-                        <i class="fas fa-check mr-2"></i>Procesados
-                    </button>
-                    <button wire:click="$set('status', 'cancelled')"
-                        class="btn-outline {{ $status === 'cancelled' ? 'bg-red-50 border-red-300 text-red-700' : '' }}">
-                        <i class="fas fa-times mr-2"></i>Cancelados
-                    </button>
-                </div>
-            </div>
-        </div>
+<div class="rounded-lg border border-slate-700 bg-slate-900/40 p-4">
+    <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-4">
+        <button type="button" wire:click="$set('status', '')" class="rounded px-3 py-1 text-sm {{ $status === '' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:bg-slate-800' }}">Todos</button>
+        <button type="button" wire:click="$set('status', 'pending')" class="rounded px-3 py-1 text-sm {{ $status === 'pending' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:bg-slate-800' }}">Pendientes</button>
+        <button type="button" wire:click="$set('status', 'processed')" class="rounded px-3 py-1 text-sm {{ $status === 'processed' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:bg-slate-800' }}">Procesados</button>
+        <button type="button" wire:click="$set('status', 'cancelled')" class="rounded px-3 py-1 text-sm {{ $status === 'cancelled' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:bg-slate-800' }}">Cancelados</button>
     </div>
-
-    <!-- Barra de búsqueda -->
-    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-        <div class="flex flex-col sm:flex-row gap-4">
-            <div class="flex-1">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-400"></i>
-                    </div>
-                    <input wire:model.live.debounce.300ms="search" type="text"
-                        placeholder="Buscar por cliente, teléfono o producto..." class="form-input pl-10">
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <span class="text-sm text-gray-500">
-                    {{ $orders->total() }} pedidos encontrados
-                </span>
-            </div>
-        </div>
+    <div class="py-4">
+        <input type="search" wire:model.live.debounce.400ms="search" placeholder="Buscar cliente, teléfono o # pedido…"
+               class="w-full max-w-md rounded border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500">
     </div>
-
-    <!-- Tabla de pedidos -->
-    <div class="modern-table-container">
-        @if ($orders->count() > 0)
-            <table class="modern-table">
-                <thead>
-                    <tr>
-                        <th wire:click="sortBy('id')" class="cursor-pointer">
-                            <div class="th-content">
-                                <span>#</span>
-                                @if ($sortField === 'id')
-                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort"></i>
-                                @endif
-                            </div>
-                        </th>
-                        <th wire:click="sortBy('customer_name')" class="cursor-pointer">
-                            <div class="th-content">
-                                <span>Cliente</span>
-                                @if ($sortField === 'customer_name')
-                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort"></i>
-                                @endif
-                            </div>
-                        </th>
-                        <th>
-                            <div class="th-content">
-                                <span>Teléfono</span>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="th-content">
-                                <span>Producto</span>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="th-content">
-                                <span>Cantidad</span>
-                            </div>
-                        </th>
-                        <th wire:click="sortBy('total_price')" class="cursor-pointer">
-                            <div class="th-content">
-                                <span>Total</span>
-                                @if ($sortField === 'total_price')
-                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort"></i>
-                                @endif
-                            </div>
-                        </th>
-                        <th wire:click="sortBy('status')" class="cursor-pointer">
-                            <div class="th-content">
-                                <span>Estado</span>
-                                @if ($sortField === 'status')
-                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort"></i>
-                                @endif
-                            </div>
-                        </th>
-                        <th wire:click="sortBy('created_at')" class="cursor-pointer">
-                            <div class="th-content">
-                                <span>Fecha</span>
-                                @if ($sortField === 'created_at')
-                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort"></i>
-                                @endif
-                            </div>
-                        </th>
-                        <th>
-                            <div class="th-content">
-                                <span>Acciones</span>
-                            </div>
-                        </th>
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-left text-sm text-slate-200">
+            <thead class="border-b border-slate-700 text-slate-400">
+                <tr>
+                    <th class="py-2 pr-4">#</th>
+                    <th class="py-2 pr-4">Cliente</th>
+                    <th class="py-2 pr-4">Teléfono</th>
+                    <th class="py-2 pr-4">Ítems</th>
+                    <th class="py-2 pr-4">Total USD</th>
+                    <th class="py-2 pr-4">Estado</th>
+                    <th class="py-2 pr-4">Fecha</th>
+                    <th class="py-2"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($orders as $order)
+                    <tr class="border-b border-slate-800/80" wire:key="order-{{ $order->id }}">
+                        <td class="py-2 pr-4 font-mono">{{ $order->id }}</td>
+                        <td class="py-2 pr-4">{{ $order->customer_name }}</td>
+                        <td class="py-2 pr-4">{{ $order->customer_phone }}</td>
+                        <td class="py-2 pr-4">{{ $order->items_count }}</td>
+                        <td class="py-2 pr-4">${{ number_format($order->total_usd, 2) }}</td>
+                        <td class="py-2 pr-4 uppercase text-xs">{{ $order->status }}</td>
+                        <td class="py-2 pr-4 text-slate-400">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                        <td class="py-2">
+                            <a href="{{ route('admin.orders.show', $order) }}" class="text-cyan-400 hover:underline">Ver</a>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach ($orders as $index => $order)
-                        <tr class="table-row">
-                            <td>
-                                <div class="row-number">
-                                    {{ ($orders->currentPage() - 1) * $orders->perPage() + $index + 1 }}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="customer-info">
-                                    <div class="customer-avatar">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div class="customer-details">
-                                        <div class="customer-name">{{ $order->customer_name }}</div>
-                                        @if ($order->customer)
-                                            <div class="customer-email">
-                                                <i class="fas fa-user-check mr-1"></i>Cliente registrado
-                                            </div>
-                                        @else
-                                            <div class="customer-email">
-                                                <i class="fas fa-user-plus mr-1"></i>Cliente nuevo
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="date-info">
-                                    <div class="date-main">{{ $order->customer_phone }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="products-info">
-                                    <div class="product-badge unique">
-                                        <i class="fas fa-box"></i>
-                                        {{ $order->product->name ?? 'Producto eliminado' }}
-                                    </div>
-                                    @if ($order->notes)
-                                        <div class="product-badge total">
-                                            <i class="fas fa-sticky-note"></i>
-                                            {{ Str::limit($order->notes, 20) }}
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td>
-                                <div class="product-badge unique">
-                                    <i class="fas fa-hashtag"></i>
-                                    {{ $order->quantity }}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="price-info">
-                                    <div class="price-amount">
-                                        ${{ number_format($order->total_price, 2) }}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="product-badge {{ $order->status === 'processed' ? 'unique' : ($order->status === 'pending' ? 'total' : '') }}">
-                                    <i class="{{ $this->getStatusIcon($order->status) }}"></i>
-                                    @switch($order->status)
-                                        @case('pending')
-                                            Pendiente
-                                        @break
-                                        @case('processed')
-                                            Procesado
-                                        @break
-                                        @case('cancelled')
-                                            Cancelado
-                                        @break
-                                    @endswitch
-                                </span>
-                            </td>
-                            <td>
-                                <div class="date-info">
-                                    <div class="date-main">{{ $order->created_at->format('d/m/Y') }}</div>
-                                    <div class="date-time">{{ $order->created_at->format('H:i') }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('admin.orders.show', $order) }}"
-                                        class="btn-action btn-edit"
-                                        title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-
-                                    @if ($order->status === 'pending')
-                                        <button wire:click="openProcessModal({{ $order->id }})"
-                                            class="btn-action btn-edit"
-                                            title="Procesar pedido">
-                                            <i class="fas fa-check"></i>
-                                        </button>
-
-                                        <button wire:click="cancelOrder({{ $order->id }})"
-                                            wire:confirm="¿Está seguro de cancelar este pedido?"
-                                            class="btn-action btn-delete"
-                                            title="Cancelar pedido">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @else
-            <div class="text-center py-12">
-                <div class="mx-auto h-24 w-24 text-gray-300">
-                    <i class="fas fa-shopping-cart text-6xl"></i>
-                </div>
-                <h3 class="mt-4 text-lg font-medium text-gray-900">No hay pedidos</h3>
-                <p class="mt-2 text-sm text-gray-500">
-                    @if ($status)
-                        No se encontraron pedidos con el estado seleccionado.
-                    @elseif($search)
-                        No se encontraron pedidos que coincidan con tu búsqueda.
-                    @else
-                        Los pedidos realizados por los clientes aparecerán aquí.
-                    @endif
-                </p>
-            </div>
-        @endif
+                @empty
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-slate-500">No hay pedidos.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-
-    <!-- Paginación -->
-    @if ($orders->hasPages())
-        <div class="px-6 py-4 border-t border-gray-200">
-            <x-ui.pagination :paginator="$orders->onEachSide(1)" />
-        </div>
-    @endif
-</div>
-</div>
-
-<!-- Modal de Procesar Pedido -->
-@if ($showProcessModal && $selectedOrder)
-    <div class="fixed inset-0 z-50 overflow-y-auto" x-show="true" x-transition>
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" x-show="true"
-                x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
-
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-                x-show="true" x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-                <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-check-circle text-white text-xl"></i>
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="text-lg font-medium text-white">
-                                    Procesar Pedido #{{ $selectedOrder->id }}
-                                </h3>
-                            </div>
-                        </div>
-                        <button wire:click="closeProcessModal"
-                            class="text-white hover:text-gray-200 transition-colors duration-200">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="px-6 py-4">
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-info-circle text-blue-400"></i>
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="text-sm font-medium text-blue-800">Información del procesamiento</h3>
-                                <div class="mt-2 text-sm text-blue-700">
-                                    <ul class="list-disc list-inside space-y-1">
-                                        @if (!$selectedOrder->customer)
-                                            <li>Se creará un nuevo cliente:
-                                                <strong>{{ $selectedOrder->customer_name }}</strong></li>
-                                        @endif
-                                        <li>Se creará una nueva venta por
-                                            <strong>${{ number_format($selectedOrder->total_price, 2) }}</strong></li>
-                                        <li>Se actualizará la deuda del cliente</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="sale_date" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-calendar mr-2"></i>Fecha de la venta
-                        </label>
-                        <input wire:model="saleDate" type="datetime-local" id="sale_date"
-                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200">
-                        <p class="mt-1 text-xs text-gray-500">Puedes cambiar la fecha si es necesario</p>
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-                    <button wire:click="closeProcessModal"
-                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
-                        <i class="fas fa-times mr-2"></i>Cancelar
-                    </button>
-                    <button wire:click="processOrder"
-                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors duration-200">
-                        <i class="fas fa-check mr-2"></i>Procesar Pedido
-                    </button>
-                </div>
-            </div>
-        </div>
+    <div class="mt-4">
+        {{ $orders->links() }}
     </div>
-@endif
 </div>
-
-<script>
-    function ordersTable() {
-        return {
-            init() {
-                // Auto refresh para pedidos pendientes
-                if (window.location.search.includes('status=pending') || !window.location.search.includes('status=')) {
-                    setInterval(() => {
-                        if (document.querySelector('[class*="badge-warning"]')) {
-                            window.location.reload();
-                        }
-                    }, 30000);
-                }
-            }
-        }
-    }
-</script>

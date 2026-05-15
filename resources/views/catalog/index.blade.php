@@ -32,6 +32,7 @@ window.__CATALOG_PRODUCTS__ = {{ Js::from($products->map(function ($p) {
     ];
 })) }};
 window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/producto'), '/')) }};
+window.__CATALOG_CART_URLS__ = @json($catalogCartUrls ?? []);
 </script>
 
 <div class="font-dv-body min-w-0 max-w-full overflow-x-hidden" x-data="catalog">

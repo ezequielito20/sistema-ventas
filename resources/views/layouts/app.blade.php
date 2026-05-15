@@ -699,6 +699,23 @@
                         </a>
                         @endif
 
+                        @if ($planMod('orders'))
+                            @can('orders.index')
+                                <a href="{{ route('admin.orders.index') }}"
+                                    class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.orders.*') ? 'is-active' : '' }}">
+                                    <i class="fas fa-shopping-basket mr-3 text-lg"></i>
+                                    Pedidos
+                                </a>
+                            @endcan
+                            @can('orders.settings')
+                                <a href="{{ route('admin.order-catalog-settings.index') }}"
+                                    class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.order-catalog-settings.*') ? 'is-active' : '' }}">
+                                    <i class="fas fa-truck-loading mr-3 text-lg"></i>
+                                    Pago y entrega
+                                </a>
+                            @endcan
+                        @endif
+
                         @if ($planMod('scanner'))
                         <!-- Escaner de Precios -->
                         <a href="{{ route('admin.scanner.index') }}"
@@ -766,49 +783,7 @@
                     <!-- Right side -->
                     @auth
                         <div class="flex items-center space-x-4">
-                            <!-- Notifications -->
-                            {{-- <div x-data="{ open: false }" class="relative">
-                                <button @click="open = !open"
-                                    class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <i class="fas fa-bell text-xl"></i>
-                                    <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
-                                </button>
-
-                                <!-- Notifications dropdown -->
-                                <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-100"
-                                    x-transition:enter-start="transform opacity-0 scale-95"
-                                    x-transition:enter-end="transform opacity-100 scale-100"
-                                    x-transition:leave="transition ease-in duration-75"
-                                    x-transition:leave-start="transform opacity-100 scale-100"
-                                    x-transition:leave-end="transform opacity-0 scale-95" @click.away="open = false"
-                                    class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                                    <div class="py-1">
-                                        <div class="px-4 py-2 border-b border-gray-100">
-                                            <h3 class="text-sm font-semibold text-gray-900">Notificaciones</h3>
-                                        </div>
-                                        <div class="max-h-64 overflow-y-auto">
-                                            <a href="#"
-                                                class="block px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
-                                                <div class="flex items-start">
-                                                    <div class="flex-shrink-0">
-                                                        <i class="fas fa-shopping-cart text-blue-500"></i>
-                                                    </div>
-                                                    <div class="ml-3 flex-1">
-                                                        <p class="text-sm font-medium text-gray-900">Nuevo pedido recibido
-                                                        </p>
-                                                        <p class="text-sm text-gray-500">Pedido #1234 de Juan Pérez</p>
-                                                        <p class="text-xs text-gray-400 mt-1">Hace 5 minutos</p>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="px-4 py-2 border-t border-gray-100">
-                                            <a href="#" class="text-sm text-blue-600 hover:text-blue-800">Ver todas
-                                                las notificaciones</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> --}}
+                            @include('components.admin-notifications-drawer')
 
                             <!-- User menu -->
                             <div x-data="{ open: false }" class="relative">

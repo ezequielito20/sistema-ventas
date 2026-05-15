@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Order;
 use App\Services\PlanEntitlementService;
 use Illuminate\Foundation\Vite;
 use Illuminate\Support\Facades\Auth;
@@ -37,6 +38,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Route::bind('order', function (string $value): Order {
+            $user = Auth::user();
+            abort_unless($user, 403);
+
+            return Order::query()
+                ->where('company_id', $user->company_id)
+                ->whereKey($value)
+                ->firstOrFail();
+        });
+
         // Cargar traducciones PHP en /lang (auth, validation, etc.); el loader por defecto solo usa resources/lang.
         if (is_dir(base_path('lang'))) {
             app('translation.loader')->addPath(base_path('lang'));

@@ -111,6 +111,11 @@ class PermissionSeeder extends Seeder
             'cash-counts.store-movement' => 'Registrar movimientos de caja',
             'cash-counts.close' => 'Cerrar arqueo de caja',
 
+            'orders.index' => 'Ver pedidos desde catálogo',
+            'orders.update' => 'Actualizar pedidos (pago, entrega, resumen)',
+            'orders.cancel' => 'Cancelar pedidos pendientes',
+            'orders.settings' => 'Configurar métodos de pago y entrega del catálogo',
+
             // Configuración
             'companies.edit' => 'Editar configuración',
             'companies.create' => 'Crear configuración inicial',

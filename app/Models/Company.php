@@ -30,6 +30,7 @@ class Company extends Model
         'permissions', 'notifications', 'orders',
         'exchange-rate', 'debt-payments',
         'catalog', 'catalogo', 'auth', 'verify', 'email', 'my-plan',
+        'resumen',
         'profile', 'security-questions', '_livewire',
     ];
 
@@ -172,6 +173,26 @@ class Company extends Model
     public function cashCounts(): HasMany
     {
         return $this->hasMany(CashCount::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function companyPaymentMethods(): HasMany
+    {
+        return $this->hasMany(CompanyPaymentMethod::class);
+    }
+
+    public function companyDeliveryMethods(): HasMany
+    {
+        return $this->hasMany(CompanyDeliveryMethod::class);
+    }
+
+    public function deliverySlots(): HasMany
+    {
+        return $this->hasMany(DeliverySlot::class);
     }
 
     public function countryModel(): BelongsTo

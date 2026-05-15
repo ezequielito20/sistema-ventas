@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Order;
+use App\Models\User;
+
+class OrderPolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return $user->can('orders.index');
+    }
+
+    public function view(User $user, Order $order): bool
+    {
+        if (! $user->can('orders.index')) {
+            return false;
+        }
+
+        return (int) $user->company_id === (int) $order->company_id;
+    }
+
+    public function update(User $user, Order $order): bool
+    {
+        return $this->view($user, $order) && $user->can('orders.update');
+    }
+
+    public function cancel(User $user, Order $order): bool
+    {
+        return $this->view($user, $order) && $user->can('orders.cancel');
+    }
+}

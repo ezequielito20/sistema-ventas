@@ -21,18 +21,74 @@ document.addEventListener('alpine:init', () => {
         allProducts: [],
         sortBy: 'name_asc',
 
+        cartLineCount: 0,
+        cartQtyTotal: 0,
+        cartUrls: window.__CATALOG_CART_URLS__ || {},
+
         init() {
             this.allProducts = window.__CATALOG_PRODUCTS__ || [];
             const products = this.allProducts;
 
             if (!products.length) {
                 this.priceSliderMax = 5000;
-                return;
+            } else {
+                const max = Math.max(...products.map((p) => p.sale_price), 0);
+                const rounded = Math.max(500, Math.ceil(max / 500) * 500);
+                this.priceSliderMax = rounded;
             }
 
-            const max = Math.max(...products.map((p) => p.sale_price), 0);
-            const rounded = Math.max(500, Math.ceil(max / 500) * 500);
-            this.priceSliderMax = rounded;
+            this.refreshCart();
+        },
+
+        async refreshCart() {
+            const u = this.cartUrls.get;
+            if (!u) return;
+            try {
+                const r = await fetch(u, {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+                if (!r.ok) return;
+                const j = await r.json();
+                this.cartLineCount = j.line_count || 0;
+                this.cartQtyTotal = j.quantity_total || 0;
+            } catch (e) {
+                /* ignore */
+            }
+        },
+
+        async addToCart(productId, qty = 1) {
+            const u = this.cartUrls.sync;
+            if (!u) return;
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const r = await fetch(u, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': token || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ product_id: productId, quantity: qty }),
+            });
+            if (!r.ok) {
+                let msg = 'No se pudo actualizar el carrito.';
+                try {
+                    const j = await r.json();
+                    if (j.message) msg = j.message;
+                    if (j.errors) {
+                        const first = Object.values(j.errors)[0];
+                        if (Array.isArray(first) && first[0]) msg = first[0];
+                    }
+                } catch (e) {
+                    /* */
+                }
+                window.dispatchEvent(new CustomEvent('catalog-cart-error', { detail: { message: msg } }));
+                return;
+            }
+            await this.refreshCart();
+            window.dispatchEvent(new CustomEvent('catalog-cart-updated'));
         },
 
         formatPrice(value) {

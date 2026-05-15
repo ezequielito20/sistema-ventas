@@ -6,19 +6,19 @@ use App\Models\Category;
 use App\Models\Company;
 use App\Models\Product;
 use App\Services\ImageUrlService;
+use App\Support\CatalogAccess;
+use App\Support\CatalogUrlGenerator;
+use Illuminate\Http\Request;
 
 class PublicCatalogController extends Controller
 {
     /**
      * Display the public product catalog for a company.
      */
-    public function index(Company $company)
+    public function index(Request $request, Company $company)
     {
-        if (! $company->catalog_is_public) {
-            abort(404);
-        }
+        CatalogAccess::assert($request, $company);
 
-        // Cargar productos directamente de la empresa (no a través de categorías)
         $products = $company->products()
             ->with([
                 'category',
@@ -30,15 +30,12 @@ class PublicCatalogController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Agregar category_name a cada producto
         $products->each(function ($product) {
             $product->category_name = $product->category?->name ?? 'Sin categoría';
         });
 
-        // Calcular conteo de productos por categoría
         $categoryCounts = $products->groupBy('category_id')->map->count();
 
-        // Cargar categorías únicas que tienen al menos un producto visible (para los filtros)
         $categoryIds = $products->pluck('category_id')->filter()->unique();
         $categories = Category::whereIn('id', $categoryIds)->orderBy('name')->get()
             ->each(function ($cat) use ($categoryCounts) {
@@ -49,20 +46,21 @@ class PublicCatalogController extends Controller
             'company' => $company,
             'categories' => $categories,
             'products' => $products,
+            'catalogCartUrls' => [
+                'get' => CatalogUrlGenerator::cartShow($company),
+                'sync' => CatalogUrlGenerator::cartSync($company),
+                'checkout' => CatalogUrlGenerator::checkout($company),
+            ],
         ]);
     }
 
     /**
      * Display a single product detail page.
      */
-    public function show(Company $company, Product $product)
+    public function show(Request $request, Company $company, Product $product)
     {
-        // If catalog is not public, return 404
-        if (! $company->catalog_is_public) {
-            abort(404);
-        }
+        CatalogAccess::assert($request, $company);
 
-        // Verify product belongs to this company
         if ($product->company_id !== $company->id) {
             abort(404);
         }
@@ -71,7 +69,6 @@ class PublicCatalogController extends Controller
             abort(404);
         }
 
-        // Load product with all images and category
         $product->load([
             'images' => function ($q) {
                 $q->orderBy('sort_order');
@@ -79,7 +76,6 @@ class PublicCatalogController extends Controller
             'category',
         ]);
 
-        // Related products: same category, visible in public catalog, different from current
         $relatedProducts = Product::where('company_id', $company->id)
             ->where('category_id', $product->category_id)
             ->visibleInPublicCatalog()
@@ -98,6 +94,11 @@ class PublicCatalogController extends Controller
             'company' => $company,
             'product' => $product,
             'relatedProducts' => $relatedProducts,
+            'catalogCartUrls' => [
+                'get' => CatalogUrlGenerator::cartShow($company),
+                'sync' => CatalogUrlGenerator::cartSync($company),
+                'checkout' => CatalogUrlGenerator::checkout($company),
+            ],
         ]);
     }
 
@@ -106,11 +107,9 @@ class PublicCatalogController extends Controller
      *
      * @see https://developers.facebook.com/docs/sharing/webmasters/images/
      */
-    public function ogLogo(Company $company)
+    public function ogLogo(Request $request, Company $company)
     {
-        if (! $company->catalog_is_public) {
-            abort(404);
-        }
+        CatalogAccess::assert($request, $company);
 
         if (! $company->logo) {
             return $this->catalogOgFallbackPng();
