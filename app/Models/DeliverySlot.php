@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 
 class DeliverySlot extends Model
 {
@@ -111,6 +112,26 @@ class DeliverySlot extends Model
         return $c;
     }
 
+    /**
+     * Próximas fechas calendario (mismo día de la semana que la franja), desde la próxima ocurrencia válida.
+     *
+     * @return Collection<int, Carbon>
+     */
+    public function resolveOccurrenceCalendarDates(int $limit = 12, ?Carbon $now = null): Collection
+    {
+        $tz = config('app.timezone');
+        $now = ($now ?: Carbon::now($tz))->copy()->timezone($tz);
+        $first = $this->resolveNextScheduledDeliveryDate($now)->copy()->startOfDay();
+        $out = collect();
+        $cursor = $first->copy();
+        for ($i = 0; $i < max(1, $limit); $i++) {
+            $out->push($cursor->copy());
+            $cursor->addWeek();
+        }
+
+        return $out->unique(fn (Carbon $d) => $d->format('Y-m-d'))->values();
+    }
+
     /** Pedidos pendientes que consumen cupo ese día para esta franja. */
     public function pendingBookingsForDate(string $ymd): int
     {
@@ -126,6 +147,17 @@ class DeliverySlot extends Model
         $d = $this->resolveNextScheduledDeliveryDate($now)->format('Y-m-d');
 
         return $this->pendingBookingsForDate($d) < (int) $this->max_orders;
+    }
+
+    /** Cupo disponible para una fecha concreta (Y-m-d) en la que esta franja aplica. */
+    public function hasCapacityOnDate(string $ymd): bool
+    {
+        $allowed = $this->resolveOccurrenceCalendarDates(16)->contains(fn (Carbon $c) => $c->format('Y-m-d') === $ymd);
+        if (! $allowed) {
+            return false;
+        }
+
+        return $this->pendingBookingsForDate($ymd) < (int) $this->max_orders;
     }
 
     public function bookingsNextOccurrence(): int

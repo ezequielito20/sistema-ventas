@@ -119,6 +119,9 @@ class CatalogOrderCheckoutService
 
         $catalogShipNoSlot = (bool) ($data['catalog_ship_no_slot'] ?? false);
         $catalogRequestedDeliveryDate = trim((string) ($data['catalog_requested_delivery_date'] ?? ''));
+        $catalogScheduledDeliveryDate = trim((string) ($data['catalog_scheduled_delivery_date'] ?? ''));
+        $catalogScheduledDeliveryTime = trim((string) ($data['catalog_scheduled_delivery_time'] ?? ''));
+        $catalogZoneFlexibleDt = (bool) ($data['catalog_delivery_zone_calendar'] ?? false);
 
         $slot = null;
 
@@ -146,7 +149,33 @@ class CatalogOrderCheckoutService
                     'delivery_slot_id' => 'No selecciones franja si indicás fecha y lugar a coordinar.',
                 ]);
             }
-        } elseif (! empty($data['delivery_slot_id'])) {
+        } elseif ($catalogZoneFlexibleDt) {
+            if (! $deliveryMethod->isDelivery() || $zone === null || $customLoc !== null) {
+                throw ValidationException::withMessages([
+                    'catalog_delivery_zone_calendar' => 'La solicitud de fecha y hora con zona no es válida.',
+                ]);
+            }
+            Validator::make(
+                [
+                    'catalog_scheduled_delivery_date' => $catalogScheduledDeliveryDate,
+                    'catalog_scheduled_delivery_time' => $catalogScheduledDeliveryTime,
+                ],
+                [
+                    'catalog_scheduled_delivery_date' => ['required', 'date_format:Y-m-d'],
+                    'catalog_scheduled_delivery_time' => ['required', 'regex:/^\d{1,2}:\d{2}(:\d{2})?$/'],
+                ],
+                [
+                    'catalog_scheduled_delivery_date.required' => 'Indicá la fecha del delivery.',
+                    'catalog_scheduled_delivery_date.date_format' => 'La fecha del delivery no es válida.',
+                    'catalog_scheduled_delivery_time.required' => 'Indicá la hora del delivery.',
+                ]
+            )->validate();
+            if (! empty($data['delivery_slot_id'])) {
+                throw ValidationException::withMessages([
+                    'delivery_slot_id' => 'No selecciones franja fija si indicás fecha y hora libres con zona.',
+                ]);
+            }
+        } elseif (! $catalogZoneFlexibleDt && ! empty($data['delivery_slot_id'])) {
             $slot = DeliverySlot::query()
                 ->where('company_id', $company->id)
                 ->where('company_delivery_method_id', $deliveryMethod->id)
@@ -187,7 +216,7 @@ class CatalogOrderCheckoutService
             }
         }
 
-        if ($this->slotsMandatoryForContext($company, $deliveryMethod, $zone, $customLoc, $catalogShipNoSlot) && $slot === null) {
+        if ($this->slotsMandatoryForContext($company, $deliveryMethod, $zone, $customLoc, $catalogShipNoSlot, $catalogZoneFlexibleDt) && $slot === null) {
             throw ValidationException::withMessages([
                 'delivery_slot_id' => 'Seleccioná fecha y horario de entrega disponibles.',
             ]);
@@ -200,7 +229,7 @@ class CatalogOrderCheckoutService
             ]);
         }
 
-        return DB::transaction(function () use ($company, $cart, $data, $paymentMethod, $deliveryMethod, $zone, $slot, $rate, $customLoc, $catalogShipNoSlot, $catalogRequestedDeliveryDate): Order {
+        return DB::transaction(function () use ($company, $cart, $data, $paymentMethod, $deliveryMethod, $zone, $slot, $rate, $customLoc, $catalogShipNoSlot, $catalogRequestedDeliveryDate, $catalogScheduledDeliveryDate, $catalogScheduledDeliveryTime, $catalogZoneFlexibleDt): Order {
             $lines = [];
             $subtotal = 0.0;
 
@@ -247,6 +276,7 @@ class CatalogOrderCheckoutService
                         'delivery_slot_id' => 'El horario seleccionado no es válido.',
                     ]);
                 }
+
                 $slotNextCarbon = $slotLocked->resolveNextScheduledDeliveryDate();
                 $scheduledDeliveryDate = $slotNextCarbon->format('Y-m-d');
 
@@ -264,6 +294,9 @@ class CatalogOrderCheckoutService
                 $slot->loadMissing('zone:id,name');
             } elseif ($catalogShipNoSlot && $deliveryMethod->isDelivery()) {
                 $scheduledDeliveryDate = $catalogRequestedDeliveryDate;
+            } elseif ($catalogZoneFlexibleDt && $deliveryMethod->isDelivery() && $zone !== null) {
+                $scheduledDeliveryDate = $catalogScheduledDeliveryDate;
+                $slotNextCarbon = Carbon::parse($catalogScheduledDeliveryDate, config('app.timezone'))->startOfDay();
             }
 
             $allocatedDiscount = 0.0;
@@ -298,10 +331,12 @@ class CatalogOrderCheckoutService
                 $deliverySnapshot .= "\nLa tienda te informará el costo del envío al leer tu pedido.";
             }
             if ($slot && $slotNextCarbon !== null) {
-                $deliverySnapshot .= "\nVentana: ".$slot->weekdayLabelEs().' '.$slot->deliveryWindowLabelShort().' (próx. '.$slotNextCarbon->format('d/m/Y').')';
+                $deliverySnapshot .= "\nVentana: ".$slot->weekdayLabelEs().' '.$slot->deliveryWindowLabelShort().' · '.Carbon::parse((string) $scheduledDeliveryDate)->format('d/m/Y');
                 if ($customLoc !== null && $slot->zone !== null) {
                     $deliverySnapshot .= "\n(franja asociada operativamente a: ".$slot->zone->name.')';
                 }
+            } elseif ($catalogZoneFlexibleDt && $scheduledDeliveryDate !== null && $catalogScheduledDeliveryTime !== '') {
+                $deliverySnapshot .= "\nFecha/hora preferidas (delivery): ".Carbon::parse((string) $scheduledDeliveryDate)->format('d/m/Y').' · '.$catalogScheduledDeliveryTime;
             } elseif ($catalogShipNoSlot && $scheduledDeliveryDate !== null) {
                 $deliverySnapshot .= "\nFecha indicada por el cliente: ".Carbon::parse($scheduledDeliveryDate)->format('d/m/Y').' (sin franja fija; costo de envío por confirmar).';
             }
@@ -363,16 +398,17 @@ class CatalogOrderCheckoutService
     }
 
     /**
-     * Hay franjas configuradas con cupo y el cliente debe elegir una (salvo catalog_ship_no_slot).
+     * Hay franjas configuradas con cupo y el cliente debe elegir una (salvo sin franja u horario libre con zona).
      */
     protected function slotsMandatoryForContext(
         Company $company,
         CompanyDeliveryMethod $dm,
         ?DeliveryZone $zone,
         ?string $customLoc,
-        bool $catalogShipNoSlot
+        bool $catalogShipNoSlot,
+        bool $catalogZoneFlexibleDt = false
     ): bool {
-        if ($catalogShipNoSlot) {
+        if ($catalogShipNoSlot || $catalogZoneFlexibleDt) {
             return false;
         }
 

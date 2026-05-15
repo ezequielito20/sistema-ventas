@@ -159,26 +159,17 @@
                         @if ($ship_zone_choice !== '' && str_starts_with($ship_zone_choice, 'z:') && $company_delivery_method_id && $delivery_zone_id)
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Fecha del delivery') }}</label>
-                                <select wire:model.live="ship_slot_date" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                                    <option value="">{{ __('Seleccionar…') }}</option>
-                                    @foreach ($this->shipSlotDateOptions as $d)
-                                        <option value="{{ $d }}">{{ \Illuminate\Support\Carbon::parse($d)->format('d/m/Y') }}</option>
-                                    @endforeach
-                                </select>
-                                @error('ship_slot_date') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                <input type="date" wire:model="ship_zone_calendar_date"
+                                       class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                @error('ship_zone_calendar_date') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
                             </div>
-                            @if ($ship_slot_date !== '')
-                                <div>
-                                    <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Hora / franja') }}</label>
-                                    <select wire:model="delivery_slot_id" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
-                                        <option value="">{{ __('Seleccionar…') }}</option>
-                                        @foreach ($this->shipSlotsForSelectedDate as $s)
-                                            <option value="{{ $s->id }}">{{ $s->weekdayLabelEs() }}, {{ $s->deliveryWindowLabelShort() }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('delivery_slot_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
-                                </div>
-                            @endif
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-dv-outline">{{ __('Hora del delivery') }}</label>
+                                <input type="time" wire:model="ship_zone_calendar_time"
+                                       class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
+                                <p class="mt-1 text-[0.65rem] text-dv-outline">{{ __('Elegí la fecha y hora que te convengan; la tienda coordinará el envío según su operación en la zona.') }}</p>
+                                @error('ship_zone_calendar_time') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
                         @endif
 
                         @if ($ship_zone_choice === 'other')

@@ -16,7 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class CatalogCheckout extends Component
@@ -29,8 +28,10 @@ class CatalogCheckout extends Component
     /** Envío: '' | 'z:{zoneId}' | 'other' */
     public string $ship_zone_choice = '';
 
-    /** Fecha calendario (Y-m-d) para filtrar franjas en delivery con zona */
-    public string $ship_slot_date = '';
+    /** Envío con zona listada: fecha/hora libres (calendario + reloj), sin franjas fijas */
+    public string $ship_zone_calendar_date = '';
+
+    public string $ship_zone_calendar_time = '';
 
     public string $delivery_zone_selection = '';
 
@@ -98,7 +99,8 @@ class CatalogCheckout extends Component
     {
         $this->company_delivery_method_id = null;
         $this->ship_zone_choice = '';
-        $this->ship_slot_date = '';
+        $this->ship_zone_calendar_date = '';
+        $this->ship_zone_calendar_time = '';
         $this->delivery_zone_id = null;
         $this->delivery_slot_id = null;
         $this->delivery_zone_selection = '';
@@ -124,7 +126,8 @@ class CatalogCheckout extends Component
         }
 
         $this->delivery_slot_id = null;
-        $this->ship_slot_date = '';
+        $this->ship_zone_calendar_date = '';
+        $this->ship_zone_calendar_time = '';
         $this->delivery_zone_id = null;
         $this->company_delivery_method_id = null;
         $this->delivery_zone_selection = '';
@@ -156,11 +159,6 @@ class CatalogCheckout extends Component
                 $this->company_delivery_method_id = (int) $zone->company_delivery_method_id;
             }
         }
-    }
-
-    public function updatedShipSlotDate(): void
-    {
-        $this->delivery_slot_id = null;
     }
 
     public function updatedDeliveryZoneSelection(?string $value): void
@@ -360,41 +358,6 @@ class CatalogCheckout extends Component
         return $q->get()->filter(fn (DeliverySlot $s) => $s->hasCapacity())->values();
     }
 
-    /**
-     * Fechas (Y-m-d) disponibles según franjas con cupo para la zona o ruta actual.
-     *
-     * @return array<int, string>
-     */
-    public function getShipSlotDateOptionsProperty(): array
-    {
-        if ($this->logistics_mode !== 'ship' || $this->ship_zone_choice === 'other' || ! $this->delivery_zone_id) {
-            return [];
-        }
-
-        $dates = $this->deliverySlots
-            ->map(fn (DeliverySlot $s) => $s->resolveNextScheduledDeliveryDate()->format('Y-m-d'))
-            ->unique()
-            ->sort()
-            ->values()
-            ->all();
-
-        return $dates;
-    }
-
-    /**
-     * Franjas para la fecha elegida (delivery con zona).
-     */
-    public function getShipSlotsForSelectedDateProperty(): Collection
-    {
-        if ($this->logistics_mode !== 'ship' || $this->ship_zone_choice === 'other' || $this->ship_slot_date === '' || ! $this->delivery_zone_id) {
-            return collect();
-        }
-
-        return $this->deliverySlots->filter(function (DeliverySlot $s) {
-            return $s->resolveNextScheduledDeliveryDate()->format('Y-m-d') === $this->ship_slot_date;
-        })->values();
-    }
-
     public function submit(Request $request, CatalogCartService $cartService, CatalogOrderCheckoutService $checkoutService): void
     {
         $company = $this->company;
@@ -457,6 +420,7 @@ class CatalogCheckout extends Component
         $customPayload = null;
         $catalogShipNoSlot = false;
         $catalogRequestedDate = null;
+        $catalogDeliveryZoneCalendar = false;
 
         if ($dm->isPickup()) {
             $this->delivery_zone_selection = '';
@@ -503,32 +467,15 @@ class CatalogCheckout extends Component
                     }
                     $customPayload = null;
 
-                    if ($this->deliverySlots->isEmpty()) {
-                        $this->addError('delivery_slot_id', 'No hay horarios con cupo para esta zona en este momento.');
-
-                        return;
-                    }
-
-                    $slotDates = $this->shipSlotDateOptions;
-                    if ($slotDates !== []) {
-                        $this->validate([
-                            'ship_slot_date' => ['required', 'date_format:Y-m-d', Rule::in($slotDates)],
-                            'delivery_slot_id' => 'required|integer|exists:delivery_slots,id',
-                        ], [
-                            'ship_slot_date.required' => 'Elegí la fecha de entrega.',
-                            'delivery_slot_id.required' => 'Elegí el horario de entrega.',
-                        ]);
-                        $allowedIds = $this->shipSlotsForSelectedDate->pluck('id')->map(fn ($id) => (int) $id)->all();
-                        if (! in_array((int) $this->delivery_slot_id, $allowedIds, true)) {
-                            $this->addError('delivery_slot_id', 'El horario no corresponde a la fecha elegida.');
-
-                            return;
-                        }
-                    } else {
-                        $this->validate([
-                            'delivery_slot_id' => 'required|integer|exists:delivery_slots,id',
-                        ]);
-                    }
+                    $this->validate([
+                        'ship_zone_calendar_date' => ['required', 'date_format:Y-m-d'],
+                        'ship_zone_calendar_time' => ['required', 'regex:/^\d{1,2}:\d{2}(:\d{2})?$/'],
+                    ], [
+                        'ship_zone_calendar_date.required' => 'Elegí la fecha del delivery.',
+                        'ship_zone_calendar_time.required' => 'Indicá la hora del delivery.',
+                    ]);
+                    $this->delivery_slot_id = null;
+                    $catalogDeliveryZoneCalendar = true;
                 } else {
                     $this->validate([
                         'delivery_custom_zone' => 'required|string|min:5|max:2000',
@@ -559,6 +506,9 @@ class CatalogCheckout extends Component
             'delivery_slot_id' => $this->delivery_slot_id,
             'catalog_ship_no_slot' => $catalogShipNoSlot,
             'catalog_requested_delivery_date' => $catalogRequestedDate,
+            'catalog_delivery_zone_calendar' => $catalogDeliveryZoneCalendar,
+            'catalog_scheduled_delivery_date' => $catalogDeliveryZoneCalendar ? $this->ship_zone_calendar_date : null,
+            'catalog_scheduled_delivery_time' => $catalogDeliveryZoneCalendar ? $this->ship_zone_calendar_time : null,
         ];
 
         $order = $checkoutService->checkout($company, $cart, $payload);
