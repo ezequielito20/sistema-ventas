@@ -4,13 +4,15 @@ namespace App\Services\Orders;
 
 use App\Models\Notification;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OrderAdminService
 {
+    public function __construct(
+        protected OrderCancellationService $orderCancellation,
+    ) {}
+
     public function markPaid(Order $order, User $user): void
     {
         $this->assertCompany($order, $user);
@@ -44,22 +46,7 @@ class OrderAdminService
             throw ValidationException::withMessages(['order' => 'Solo se pueden cancelar pedidos pendientes.']);
         }
 
-        DB::transaction(function () use ($order, $user): void {
-            $order->load(['items.product']);
-            foreach ($order->items as $item) {
-                $product = Product::query()->whereKey($item->product_id)->lockForUpdate()->first();
-                if ($product) {
-                    $product->increment('stock', $item->quantity);
-                }
-            }
-            $order->forceFill([
-                'status' => 'cancelled',
-                'processed_at' => now(),
-                'processed_by' => $user->id,
-            ])->save();
-
-            Notification::query()->where('order_id', $order->id)->delete();
-        });
+        $this->orderCancellation->cancelPending($order, $user->id);
     }
 
     public function regenerateSummaryLink(Order $order, User $user): void

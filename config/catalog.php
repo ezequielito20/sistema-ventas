@@ -21,4 +21,22 @@ return [
     |--------------------------------------------------------------------------
     */
     'private_catalog_signed_link_days' => (int) env('CATALOG_PRIVATE_SIGNED_LINK_DAYS', 7),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Anti-abuso en checkout público (pedidos desde catálogo)
+    |--------------------------------------------------------------------------
+    */
+    'order_max_per_ip_per_hour' => (int) env('CATALOG_ORDER_MAX_PER_IP_PER_HOUR', 3),
+
+    'order_ip_rate_limit_decay_seconds' => (int) env('CATALOG_ORDER_IP_RATE_LIMIT_DECAY_SECONDS', 3600),
+
+    'order_max_pending_per_phone' => (int) env('CATALOG_ORDER_MAX_PENDING_PER_PHONE', 1),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cancelación del pedido por el cliente (enlace de resumen)
+    |--------------------------------------------------------------------------
+    */
+    'order_public_cancel_window_minutes' => (int) env('CATALOG_ORDER_PUBLIC_CANCEL_WINDOW_MINUTES', 30),
 ];

@@ -511,7 +511,7 @@ class CatalogCheckout extends Component
             'catalog_scheduled_delivery_time' => $catalogDeliveryZoneCalendar ? $this->ship_zone_calendar_time : null,
         ];
 
-        $order = $checkoutService->checkout($company, $cart, $payload);
+        $order = $checkoutService->checkout($company, $cart, $payload, $request);
 
         $this->submitted = true;
         $this->createdOrderId = $order->id;
