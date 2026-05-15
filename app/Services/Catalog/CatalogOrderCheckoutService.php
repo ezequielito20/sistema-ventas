@@ -15,6 +15,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\PlanEntitlementService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -103,7 +104,7 @@ class CatalogOrderCheckoutService
             }
             if ($deliveryMethod->isPickup() && $slot->delivery_zone_id !== null) {
                 throw ValidationException::withMessages([
-                    'delivery_slot_id' => 'El horario no corresponde al retiro seleccionado.',
+                    'delivery_slot_id' => 'El horario no corresponde a la entrega seleccionada.',
                 ]);
             }
         }
@@ -151,14 +152,31 @@ class CatalogOrderCheckoutService
             $totalUsd = round($afterDiscount + $deliveryFee, 2);
             $totalBs = round($totalUsd * $rate, 2);
 
+            $scheduledDeliveryDate = null;
+            /** @var Carbon|null */
+            $slotNextCarbon = null;
+
             if ($slot) {
-                $slot = DeliverySlot::query()->whereKey($slot->id)->lockForUpdate()->first();
-                if (! $slot || ! $slot->hasCapacity()) {
+                $slotLocked = DeliverySlot::query()->whereKey($slot->id)->lockForUpdate()->first();
+                if (! $slotLocked || ! $slotLocked->is_active) {
+                    throw ValidationException::withMessages([
+                        'delivery_slot_id' => 'El horario seleccionado no es válido.',
+                    ]);
+                }
+                $slotNextCarbon = $slotLocked->resolveNextScheduledDeliveryDate();
+                $scheduledDeliveryDate = $slotNextCarbon->format('Y-m-d');
+
+                $bookedPending = Order::query()
+                    ->where('delivery_slot_id', $slotLocked->id)
+                    ->whereDate('scheduled_delivery_date', $scheduledDeliveryDate)
+                    ->where('status', 'pending')
+                    ->count();
+                if ($bookedPending >= (int) $slotLocked->max_orders) {
                     throw ValidationException::withMessages([
                         'delivery_slot_id' => 'Ese horario ya no tiene cupos disponibles.',
                     ]);
                 }
-                $slot->increment('booked_count');
+                $slot = $slotLocked;
             }
 
             $allocatedDiscount = 0.0;
@@ -188,8 +206,8 @@ class CatalogOrderCheckoutService
             if ($zone) {
                 $deliverySnapshot .= "\nZona: ".$zone->name;
             }
-            if ($slot) {
-                $deliverySnapshot .= "\nVentana: ".$slot->starts_at->format('d/m/Y H:i').' – '.$slot->ends_at->format('H:i');
+            if ($slot && $slotNextCarbon !== null) {
+                $deliverySnapshot .= "\nVentana: ".$slot->weekdayLabelEs().' '.$slot->timeShort().' (próx. '.$slotNextCarbon->format('d/m/Y').')';
             }
 
             $token = Order::generateSummaryToken();
@@ -209,6 +227,7 @@ class CatalogOrderCheckoutService
                 'company_delivery_method_id' => $deliveryMethod->id,
                 'delivery_zone_id' => $zone?->id,
                 'delivery_slot_id' => $slot?->id,
+                'scheduled_delivery_date' => $scheduledDeliveryDate,
                 'exchange_rate_used' => $rate,
                 'subtotal_products_usd' => $subtotal,
                 'payment_discount_percent_snapshot' => $discPercent,

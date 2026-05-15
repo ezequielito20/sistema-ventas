@@ -33,10 +33,13 @@
                             <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                         @enderror
                     </div>
-                    <div class="flex items-center gap-2 pt-6 md:col-span-2">
-                        <input type="checkbox" wire:model="isActive" id="pm-active" class="rounded border-slate-600 bg-slate-900" />
-                        <label for="pm-active" class="text-sm text-slate-300">Activo (visible en checkout)</label>
+                    <div class="flex items-end pb-2 md:self-end">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" wire:model="isActive" id="pm-active" class="rounded border-slate-600 bg-slate-900" />
+                            <label for="pm-active" class="text-sm text-slate-300">Activo (visible en checkout)</label>
+                        </div>
                     </div>
+                    <div class="hidden md:block" aria-hidden="true"></div>
                     <div class="md:col-span-2">
                         <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Datos para el cliente (instrucciones)</label>
                         <textarea wire:model.blur="instructions" rows="4" class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100"></textarea>

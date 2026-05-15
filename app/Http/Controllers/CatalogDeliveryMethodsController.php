@@ -62,7 +62,8 @@ class CatalogDeliveryMethodsController extends Controller
         $deliverySlots = DeliverySlot::query()
             ->where('company_id', $company->id)
             ->with(['deliveryMethod', 'zone'])
-            ->orderBy('starts_at')
+            ->orderBy('weekday_iso')
+            ->orderBy('delivery_time')
             ->get();
 
         $emittedAt = now();

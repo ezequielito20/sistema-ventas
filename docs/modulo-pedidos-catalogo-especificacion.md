@@ -60,7 +60,7 @@ Reglas:
 
 ### 5.1 `company_delivery_methods`
 
-- `company_id`, `type`: `pickup` \| `delivery`, nombre, texto de instrucciones, datos de retiro (dirección/horario sugerido para pickup), `sort_order`, `is_active`.
+- `company_id`, `type`: `pickup` \| `delivery`, nombre, texto de instrucciones, datos de entrega (dirección/horario sugerido para pickup), `sort_order`, `is_active`.
 
 ### 5.2 `delivery_zones`
 

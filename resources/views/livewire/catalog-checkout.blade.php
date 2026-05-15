@@ -105,7 +105,8 @@
                         <select wire:model="delivery_slot_id" class="mt-1 w-full rounded-lg border border-dv-outline-variant bg-dv-surface px-3 py-2 text-sm text-dv-on-surface">
                             <option value="">{{ __('Seleccionar…') }}</option>
                             @foreach ($this->deliverySlots as $s)
-                                <option value="{{ $s->id }}">{{ $s->starts_at->format('d/m H:i') }} – {{ $s->ends_at->format('H:i') }}</option>
+                                @php($nextDay = $s->resolveNextScheduledDeliveryDate())
+                                <option value="{{ $s->id }}">{{ $s->weekdayLabelEs() }}, {{ $s->timeShort() }} · próx. {{ $nextDay->format('d/m') }}</option>
                             @endforeach
                         </select>
                         @error('delivery_slot_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror

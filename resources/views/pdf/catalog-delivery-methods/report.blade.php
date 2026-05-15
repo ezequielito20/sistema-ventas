@@ -19,7 +19,7 @@
             <td>
                 <strong>Resumen:</strong>
                 {{ $deliveryMethods->count() }} {{ $deliveryMethods->count() === 1 ? 'método' : 'métodos' }}
-                ({{ $pickupCount }} retiro · {{ $deliveryCount }} delivery)
+                ({{ $pickupCount }} entrega · {{ $deliveryCount }} delivery)
                 · {{ $activos }} activos
                 · {{ $deliverySlots->count() }} {{ $deliverySlots->count() === 1 ? 'franja' : 'franjas' }} registradas
             </td>
@@ -33,7 +33,7 @@
                 <th style="width: 5%;">#</th>
                 <th style="width: 26%;">Nombre</th>
                 <th style="width: 12%;">Tipo</th>
-                <th style="width: 14%;">Dirección retiro</th>
+                <th style="width: 14%;">Dirección Entrega</th>
                 <th style="width: 10%;">Activo</th>
                 <th style="width: 11%;" class="pdf-num">Pedidos</th>
                 <th style="width: 11%;" class="pdf-num">Zonas</th>
@@ -45,7 +45,7 @@
                 <tr>
                     <td class="pdf-num">{{ $loop->iteration }}</td>
                     <td><strong>{{ $method->name }}</strong></td>
-                    <td>{{ $method->type === 'delivery' ? 'Delivery' : 'Retiro' }}</td>
+                    <td>{{ $method->type === 'delivery' ? 'Delivery' : 'Entrega' }}</td>
                     <td>{{ $method->pickup_address ? \Illuminate\Support\Str::limit($method->pickup_address, 40) : '—' }}</td>
                     <td>{{ $method->is_active ? 'Sí' : 'No' }}</td>
                     <td class="pdf-num">{{ $method->orders_count }}</td>
@@ -94,10 +94,10 @@
                     <th style="width: 6%;">#</th>
                     <th style="width: 22%;">Método</th>
                     <th style="width: 22%;">Zona</th>
-                    <th style="width: 18%;">Inicio</th>
-                    <th style="width: 18%;">Fin</th>
-                    <th style="width: 7%;" class="pdf-num">Máx.</th>
-                    <th style="width: 7%;" class="pdf-num">Res.</th>
+                    <th style="width: 10%;">Día</th>
+                    <th style="width: 10%;">Hora</th>
+                    <th style="width: 8%;" class="pdf-num">Máx.</th>
+                    <th style="width: 8%;" class="pdf-num">Próx. ped.</th>
                 </tr>
             </thead>
             <tbody>
@@ -106,10 +106,10 @@
                         <td class="pdf-num">{{ $loop->iteration }}</td>
                         <td>{{ $slot->deliveryMethod->name }}</td>
                         <td>{{ $slot->delivery_zone_id ? ($slot->zone?->name ?? '—') : '—' }}</td>
-                        <td>{{ $slot->starts_at->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
-                        <td>{{ $slot->ends_at->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
+                        <td>{{ $slot->weekdayLabelEs() }}</td>
+                        <td>{{ $slot->timeShort() }}</td>
                         <td class="pdf-num">{{ $slot->max_orders }}</td>
-                        <td class="pdf-num">{{ $slot->booked_count }}</td>
+                        <td class="pdf-num">{{ $slot->bookingsNextOccurrence() }}</td>
                     </tr>
                 @endforeach
             </tbody>

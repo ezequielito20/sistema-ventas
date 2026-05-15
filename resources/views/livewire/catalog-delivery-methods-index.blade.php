@@ -3,7 +3,7 @@
         <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="ui-panel__title">Métodos de entrega del catálogo</h1>
-                <p class="ui-panel__subtitle">Retiro, delivery, zonas y franjas en el checkout público.</p>
+                <p class="ui-panel__subtitle">Entrega, delivery, zonas y franjas en el checkout público.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 @if ($permFlags['can_report'])
@@ -27,7 +27,7 @@
 
     <div class="grid grid-cols-2 gap-2 xs:gap-3 lg:grid-cols-4">
         <x-ui.stat-card variant="info" icon="fas fa-truck" trend="Total" label="Métodos" :value="number_format($stats['total'])" meta="Registrados" />
-        <x-ui.stat-card variant="success" icon="fas fa-walking" trend="Retiro" label="Pickup" :value="number_format($stats['pickup'])" meta="En local" />
+        <x-ui.stat-card variant="success" icon="fas fa-walking" trend="Entrega" label="Pickup" :value="number_format($stats['pickup'])" meta="En local" />
         <x-ui.stat-card variant="warning" icon="fas fa-map-marked-alt" trend="Delivery" label="Delivery" :value="number_format($stats['delivery'])" meta="Envío" />
         <x-ui.stat-card variant="success" icon="fas fa-toggle-on" trend="Activos" label="Activos" :value="number_format($stats['active'])" meta="Checkout" />
     </div>
@@ -67,7 +67,7 @@
                         class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                     >
                         <option value="">Todos</option>
-                        <option value="pickup">Retiro</option>
+                        <option value="pickup">Entrega</option>
                         <option value="delivery">Delivery</option>
                     </select>
                 </div>
@@ -209,7 +209,7 @@
                                         </td>
                                         <td class="text-center">
                                             <span class="ui-badge {{ $d->type === 'delivery' ? 'ui-badge-info' : 'ui-badge-success' }}">
-                                                {{ $d->type === 'delivery' ? 'Delivery' : 'Retiro' }}
+                                                {{ $d->type === 'delivery' ? 'Delivery' : 'Entrega' }}
                                             </span>
                                         </td>
                                         <td class="text-center tabular-nums">{{ $d->orders_count }}</td>
@@ -265,7 +265,7 @@
                                         <p class="mt-1 text-xs text-slate-400">{{ \Illuminate\Support\Str::limit($d->instructions, 72) }}</p>
                                     @endif
                                     <p class="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                                        <span class="ui-badge {{ $d->type === 'delivery' ? 'ui-badge-info' : 'ui-badge-success' }}">{{ $d->type === 'delivery' ? 'Delivery' : 'Retiro' }}</span>
+                                        <span class="ui-badge {{ $d->type === 'delivery' ? 'ui-badge-info' : 'ui-badge-success' }}">{{ $d->type === 'delivery' ? 'Delivery' : 'Entrega' }}</span>
                                         <span class="ui-badge {{ $d->is_active ? 'ui-badge-success' : 'ui-badge-warning' }}">{{ $d->is_active ? 'Activo' : 'Inactivo' }}</span>
                                         <span>{{ $d->orders_count }} pedidos</span>
                                         <span>{{ $d->zones_count }} zon · {{ $d->delivery_slots_count }} franja</span>
@@ -321,7 +321,7 @@
                     </div>
                     @if ($detailDeliveryMethod['type'] === 'pickup')
                         <div class="flex justify-between gap-4">
-                            <span class="text-slate-500">Retiro</span>
+                            <span class="text-slate-500">Entrega</span>
                             <span class="max-w-[14rem] text-right text-slate-200">{{ $detailDeliveryMethod['pickup_address'] ?: '—' }}</span>
                         </div>
                     @endif

@@ -64,27 +64,23 @@ class CatalogOrderBootstrapSeeder extends Seeder
                 'is_active' => true,
             ]);
 
-            $start = now()->addDay()->setTime(9, 0);
             DeliverySlot::query()->create([
                 'company_id' => $company->id,
                 'company_delivery_method_id' => $pickup->id,
                 'delivery_zone_id' => null,
-                'starts_at' => $start,
-                'ends_at' => (clone $start)->addHours(2),
+                'weekday_iso' => (int) now()->addDay()->isoWeekday(),
+                'delivery_time' => '09:00:00',
                 'max_orders' => 1,
-                'booked_count' => 0,
                 'is_active' => true,
             ]);
 
-            $start2 = now()->addDay()->setTime(14, 0);
             DeliverySlot::query()->create([
                 'company_id' => $company->id,
                 'company_delivery_method_id' => $delivery->id,
                 'delivery_zone_id' => $zone->id,
-                'starts_at' => $start2,
-                'ends_at' => (clone $start2)->addHours(2),
+                'weekday_iso' => (int) now()->addDays(2)->isoWeekday(),
+                'delivery_time' => '14:00:00',
                 'max_orders' => 1,
-                'booked_count' => 0,
                 'is_active' => true,
             ]);
 

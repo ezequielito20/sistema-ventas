@@ -42,6 +42,11 @@ class CatalogPaymentMethodsIndex extends Component
 
     protected int $companyId = 0;
 
+    public function hydrate(): void
+    {
+        $this->companyId = (int) (Auth::user()?->company_id ?? 0);
+    }
+
     protected function entitlement(): PlanEntitlementService
     {
         return app(PlanEntitlementService::class);

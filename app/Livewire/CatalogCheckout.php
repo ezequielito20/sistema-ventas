@@ -119,8 +119,8 @@ class CatalogCheckout extends Component
             ->where('company_id', $this->companyId)
             ->where('company_delivery_method_id', $method->id)
             ->where('is_active', true)
-            ->where('starts_at', '>', now())
-            ->orderBy('starts_at');
+            ->orderBy('weekday_iso')
+            ->orderBy('delivery_time');
 
         if ($method->isDelivery()) {
             if (! $this->delivery_zone_id) {

@@ -45,17 +45,11 @@ class OrderAdminService
         }
 
         DB::transaction(function () use ($order, $user): void {
-            $order->load(['items.product', 'deliverySlot']);
+            $order->load(['items.product']);
             foreach ($order->items as $item) {
                 $product = Product::query()->whereKey($item->product_id)->lockForUpdate()->first();
                 if ($product) {
                     $product->increment('stock', $item->quantity);
-                }
-            }
-            if ($order->deliverySlot) {
-                $slot = $order->deliverySlot()->lockForUpdate()->first();
-                if ($slot && $slot->booked_count > 0) {
-                    $slot->decrement('booked_count');
                 }
             }
             $order->forceFill([

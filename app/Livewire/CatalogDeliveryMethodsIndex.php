@@ -45,6 +45,11 @@ class CatalogDeliveryMethodsIndex extends Component
 
     protected int $companyId = 0;
 
+    public function hydrate(): void
+    {
+        $this->companyId = (int) (Auth::user()?->company_id ?? 0);
+    }
+
     protected $queryString = [
         'search' => ['except' => ''],
         'activeOnly' => ['except' => ''],
@@ -142,7 +147,7 @@ class CatalogDeliveryMethodsIndex extends Component
             'id' => $m->id,
             'name' => $m->name,
             'type' => $m->type,
-            'type_label' => $m->type === CompanyDeliveryMethod::TYPE_DELIVERY ? 'Delivery' : 'Retiro',
+            'type_label' => $m->type === CompanyDeliveryMethod::TYPE_DELIVERY ? 'Delivery' : 'Entrega',
             'pickup_address' => (string) ($m->pickup_address ?? ''),
             'instructions' => trim((string) ($m->instructions ?? '')) ?: '—',
             'sort_order' => (int) $m->sort_order,
