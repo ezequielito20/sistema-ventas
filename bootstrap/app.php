@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureCompanyIsActive;
 use App\Http\Middleware\EnsureSecurityQuestionsSetUp;
+use App\Http\Middleware\EnsureTenantCatalogCheckoutModule;
 use App\Http\Middleware\EnsureTenantCatalogOrdersSection;
 use App\Http\Middleware\EnsureUserIsSuperAdmin;
 use App\Http\Middleware\OptimizeResponseMiddleware;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'superadmin' => EnsureUserIsSuperAdmin::class,
+            'tenant.catalog-checkout' => EnsureTenantCatalogCheckoutModule::class,
             'tenant.orders' => EnsureTenantCatalogOrdersSection::class,
         ]);
     })

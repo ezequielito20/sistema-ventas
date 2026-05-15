@@ -8,6 +8,8 @@ use App\Http\Controllers\Auth\PasswordRecoveryController;
 use App\Http\Controllers\Auth\SecurityQuestionsController;
 use App\Http\Controllers\CashCountController;
 use App\Http\Controllers\CatalogCheckoutPageController;
+use App\Http\Controllers\CatalogDeliveryMethodsController;
+use App\Http\Controllers\CatalogPaymentMethodsController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
@@ -27,6 +29,7 @@ use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use App\Services\ImageUrlService;
+use App\Services\PlanEntitlementService;
 use Barryvdh\Debugbar\Controllers\AssetController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -286,9 +289,51 @@ Route::prefix('admin/debt-payments')->middleware(['auth'])->group(function () {
     Route::delete('/sale/{saleId}/all', [DebtPaymentController::class, 'deletePaymentsBySale'])->name('admin.debt-payments.delete-by-sale');
 });
 
-Route::get('/admin/order-catalog-settings', fn () => view('admin.order-catalog-settings.index'))
-    ->name('admin.order-catalog-settings.index')
-    ->middleware(['auth', 'tenant.orders:configure']);
+Route::get('/admin/order-catalog-settings', function () {
+    $user = auth()->user();
+    $svc = app(PlanEntitlementService::class);
+    if ($svc->tenantUserMayBrowseCatalogPayments($user)) {
+        return redirect()->route('admin.catalog-payment-methods.index');
+    }
+    if ($svc->tenantUserMayBrowseCatalogDeliveries($user)) {
+        return redirect()->route('admin.catalog-delivery-methods.index');
+    }
+    abort(403);
+})->middleware(['auth'])->name('admin.order-catalog-settings.index');
+
+Route::view('/admin/catalog-payment-methods', 'admin.catalog-payment-methods.index')
+    ->name('admin.catalog-payment-methods.index')
+    ->middleware(['auth', 'tenant.catalog-checkout:catalog_payment_methods']);
+
+Route::get('/admin/catalog-payment-methods/create', [CatalogPaymentMethodsController::class, 'create'])
+    ->name('admin.catalog-payment-methods.create')
+    ->middleware(['auth', 'tenant.catalog-checkout:catalog_payment_methods']);
+
+Route::get('/admin/catalog-payment-methods/{id}/edit', [CatalogPaymentMethodsController::class, 'edit'])
+    ->whereNumber('id')
+    ->name('admin.catalog-payment-methods.edit')
+    ->middleware(['auth', 'tenant.catalog-checkout:catalog_payment_methods']);
+
+Route::get('/admin/catalog-payment-methods/report', [CatalogPaymentMethodsController::class, 'report'])
+    ->name('admin.catalog-payment-methods.report')
+    ->middleware(['auth', 'tenant.catalog-checkout:catalog_payment_methods']);
+
+Route::view('/admin/catalog-delivery-methods', 'admin.catalog-delivery-methods.index')
+    ->name('admin.catalog-delivery-methods.index')
+    ->middleware(['auth', 'tenant.catalog-checkout:catalog_delivery_methods']);
+
+Route::get('/admin/catalog-delivery-methods/create', [CatalogDeliveryMethodsController::class, 'create'])
+    ->name('admin.catalog-delivery-methods.create')
+    ->middleware(['auth', 'tenant.catalog-checkout:catalog_delivery_methods']);
+
+Route::get('/admin/catalog-delivery-methods/{id}/edit', [CatalogDeliveryMethodsController::class, 'edit'])
+    ->whereNumber('id')
+    ->name('admin.catalog-delivery-methods.edit')
+    ->middleware(['auth', 'tenant.catalog-checkout:catalog_delivery_methods']);
+
+Route::get('/admin/catalog-delivery-methods/report', [CatalogDeliveryMethodsController::class, 'report'])
+    ->name('admin.catalog-delivery-methods.report')
+    ->middleware(['auth', 'tenant.catalog-checkout:catalog_delivery_methods']);
 
 // Rutas para manejo de pedidos (Admin)
 Route::prefix('admin/orders')->middleware(['auth', 'tenant.orders:browse'])->group(function () {

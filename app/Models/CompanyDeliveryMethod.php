@@ -34,6 +34,11 @@ class CompanyDeliveryMethod extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'company_delivery_method_id');
+    }
+
     public function zones(): HasMany
     {
         return $this->hasMany(DeliveryZone::class);

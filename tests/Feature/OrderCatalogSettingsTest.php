@@ -46,9 +46,12 @@ class OrderCatalogSettingsTest extends TestCase
         return $plan;
     }
 
-    public function test_order_catalog_settings_forbidden_without_permission(): void
+    public function test_legacy_checkout_admin_url_forbidden_when_not_eligible(): void
     {
         Permission::firstOrCreate(['name' => 'orders.settings', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'catalog-payments.index', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'catalog-deliveries.index', 'guard_name' => 'web']);
+
         $company = Company::factory()->create();
         $this->subscribeCompanyToCatalogOrders($company);
         $user = User::factory()->create([
@@ -61,9 +64,10 @@ class OrderCatalogSettingsTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_order_catalog_settings_ok_with_orders_settings_permission(): void
+    public function test_legacy_checkout_admin_url_redirects_with_orders_settings(): void
     {
         Permission::firstOrCreate(['name' => 'orders.settings', 'guard_name' => 'web']);
+
         $company = Company::factory()->create();
         $this->subscribeCompanyToCatalogOrders($company);
         $user = User::factory()->create([
@@ -74,13 +78,18 @@ class OrderCatalogSettingsTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('admin.order-catalog-settings.index'))
+            ->assertRedirect(route('admin.catalog-payment-methods.index'));
+
+        $this->actingAs($user)
+            ->get(route('admin.catalog-payment-methods.index'))
             ->assertOk()
-            ->assertSee('Checkout del catálogo');
+            ->assertSee('Métodos de pago del catálogo');
     }
 
-    public function test_order_catalog_settings_ok_with_roles_assign_fallback(): void
+    public function test_legacy_checkout_admin_url_redirects_with_roles_assign_fallback(): void
     {
         Permission::firstOrCreate(['name' => 'roles.assign.permissions', 'guard_name' => 'web']);
+
         $company = Company::factory()->create();
         $this->subscribeCompanyToCatalogOrders($company);
         $user = User::factory()->create([
@@ -91,7 +100,45 @@ class OrderCatalogSettingsTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('admin.order-catalog-settings.index'))
+            ->assertRedirect(route('admin.catalog-payment-methods.index'));
+
+        $this->actingAs($user)
+            ->get(route('admin.catalog-payment-methods.index'))
             ->assertOk()
-            ->assertSee('Checkout del catálogo');
+            ->assertSee('Métodos de pago del catálogo');
+    }
+
+    public function test_catalog_payment_methods_index_forbidden_without_grants(): void
+    {
+        Permission::firstOrCreate(['name' => 'catalog-payments.index', 'guard_name' => 'web']);
+
+        $company = Company::factory()->create();
+        $this->subscribeCompanyToCatalogOrders($company);
+        $user = User::factory()->create([
+            'company_id' => $company->id,
+            'security_questions_setup' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('admin.catalog-payment-methods.index'))
+            ->assertForbidden();
+    }
+
+    public function test_catalog_delivery_methods_index_ok_with_catalog_deliveries_index(): void
+    {
+        Permission::firstOrCreate(['name' => 'catalog-deliveries.index', 'guard_name' => 'web']);
+
+        $company = Company::factory()->create();
+        $this->subscribeCompanyToCatalogOrders($company);
+        $user = User::factory()->create([
+            'company_id' => $company->id,
+            'security_questions_setup' => true,
+        ]);
+        $user->givePermissionTo('catalog-deliveries.index');
+
+        $this->actingAs($user)
+            ->get(route('admin.catalog-delivery-methods.index'))
+            ->assertOk()
+            ->assertSee('Métodos de entrega del catálogo');
     }
 }

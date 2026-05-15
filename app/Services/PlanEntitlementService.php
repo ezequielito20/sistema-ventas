@@ -74,6 +74,10 @@ class PlanEntitlementService
             return $this->planFeaturesGrantOrdersCapability($features);
         }
 
+        if (in_array($moduleKey, ['catalog_payment_methods', 'catalog_delivery_methods'], true)) {
+            return $this->planFeaturesGrantOrdersCapability($features);
+        }
+
         return in_array($moduleKey, $features, true);
     }
 
@@ -126,10 +130,50 @@ class PlanEntitlementService
         return $this->tenantUserOrdersAdminFallback($user);
     }
 
+    /**
+     * @param  'index'|'create'|'edit'|'destroy'|'show'|'report'  $abilitySuffix
+     */
+    public function tenantUserMayUseCatalogPaymentsAbility(?User $user, string $abilitySuffix): bool
+    {
+        if ($user === null || ! $this->userCanAccessModule($user, 'catalog_payment_methods')) {
+            return false;
+        }
+
+        return $user->can('catalog-payments.'.$abilitySuffix)
+            || $user->can('orders.settings')
+            || $this->tenantUserOrdersAdminFallback($user);
+    }
+
+    /**
+     * @param  'index'|'create'|'edit'|'destroy'|'show'|'report'  $abilitySuffix
+     */
+    public function tenantUserMayUseCatalogDeliveriesAbility(?User $user, string $abilitySuffix): bool
+    {
+        if ($user === null || ! $this->userCanAccessModule($user, 'catalog_delivery_methods')) {
+            return false;
+        }
+
+        return $user->can('catalog-deliveries.'.$abilitySuffix)
+            || $user->can('orders.settings')
+            || $this->tenantUserOrdersAdminFallback($user);
+    }
+
+    public function tenantUserMayBrowseCatalogPayments(?User $user): bool
+    {
+        return $this->tenantUserMayUseCatalogPaymentsAbility($user, 'index');
+    }
+
+    public function tenantUserMayBrowseCatalogDeliveries(?User $user): bool
+    {
+        return $this->tenantUserMayUseCatalogDeliveriesAbility($user, 'index');
+    }
+
     public function tenantUserMaySeeOrdersSidebar(?User $user): bool
     {
         return $this->tenantUserMayBrowseOrdersConsole($user)
-            || $this->tenantUserMayConfigureOrdersConsole($user);
+            || $this->tenantUserMayConfigureOrdersConsole($user)
+            || $this->tenantUserMayBrowseCatalogPayments($user)
+            || $this->tenantUserMayBrowseCatalogDeliveries($user);
     }
 
     /**
@@ -396,6 +440,10 @@ class PlanEntitlementService
         }
 
         if ($moduleKey === 'orders') {
+            return $this->planFeaturesGrantOrdersCapability($features);
+        }
+
+        if (in_array($moduleKey, ['catalog_payment_methods', 'catalog_delivery_methods'], true)) {
             return $this->planFeaturesGrantOrdersCapability($features);
         }
 

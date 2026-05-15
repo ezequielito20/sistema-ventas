@@ -114,7 +114,21 @@ class PermissionSeeder extends Seeder
             'orders.index' => 'Ver pedidos desde catálogo',
             'orders.update' => 'Actualizar pedidos (pago, entrega, resumen)',
             'orders.cancel' => 'Cancelar pedidos pendientes',
-            'orders.settings' => 'Configurar métodos de pago y entrega del catálogo',
+            'orders.settings' => 'Configurar métodos de pago y entrega del catálogo (legado)',
+
+            'catalog-payments.index' => 'Ver métodos de pago del catálogo',
+            'catalog-payments.create' => 'Crear métodos de pago del catálogo',
+            'catalog-payments.edit' => 'Editar métodos de pago del catálogo',
+            'catalog-payments.destroy' => 'Eliminar métodos de pago del catálogo',
+            'catalog-payments.report' => 'Generar informes PDF de métodos de pago del catálogo',
+            'catalog-payments.show' => 'Ver detalle de método de pago del catálogo',
+
+            'catalog-deliveries.index' => 'Ver métodos de entrega del catálogo',
+            'catalog-deliveries.create' => 'Crear métodos de entrega del catálogo',
+            'catalog-deliveries.edit' => 'Editar métodos de entrega del catálogo',
+            'catalog-deliveries.destroy' => 'Eliminar métodos de entrega del catálogo',
+            'catalog-deliveries.report' => 'Generar informes PDF de métodos de entrega del catálogo',
+            'catalog-deliveries.show' => 'Ver detalle de método de entrega del catálogo',
 
             // Configuración
             'companies.edit' => 'Editar configuración',

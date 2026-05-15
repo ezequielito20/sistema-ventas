@@ -707,7 +707,7 @@
                             @endphp
                             @if ($ordersSidebarOpen)
                             <div
-                                x-data="{ open: {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.order-catalog-settings.*') ? 'true' : 'false' }} }">
+                                x-data="{ open: {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.order-catalog-settings.*') || request()->routeIs('admin.catalog-payment-methods.*') || request()->routeIs('admin.catalog-delivery-methods.*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" type="button"
                                     class="app-sidebar-parent-btn group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200">
                                     <div class="flex items-center">
@@ -729,10 +729,16 @@
                                             Pedidos
                                         </a>
                                     @endif
-                                    @if ($ordersEnt->tenantUserMayConfigureOrdersConsole(auth()->user()))
-                                        <a href="{{ route('admin.order-catalog-settings.index') }}"
-                                            class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.order-catalog-settings.*') ? 'is-active' : '' }}">
-                                            Métodos de pago y entrega
+                                    @if ($ordersEnt->tenantUserMayBrowseCatalogPayments(auth()->user()))
+                                        <a href="{{ route('admin.catalog-payment-methods.index') }}"
+                                            class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.catalog-payment-methods.*') ? 'is-active' : '' }}">
+                                            Métodos de pago
+                                        </a>
+                                    @endif
+                                    @if ($ordersEnt->tenantUserMayBrowseCatalogDeliveries(auth()->user()))
+                                        <a href="{{ route('admin.catalog-delivery-methods.index') }}"
+                                            class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.catalog-delivery-methods.*') ? 'is-active' : '' }}">
+                                            Métodos de entrega
                                         </a>
                                     @endif
                                 </div>

@@ -141,6 +141,26 @@ return [
             'platform_console_only' => false,
             'in_plan_form' => true,
         ],
+        /*
+         * Gestión granular del checkout público (mismo contrato efectivo que «orders»: catálogo o pedidos en el plan).
+         * Ocultos en el formulario de plan; usan prefijos catalog-payments / catalog-deliveries.
+         */
+        'catalog_payment_methods' => [
+            'label' => 'Métodos de pago del catálogo',
+            'permission_prefixes' => ['catalog-payments'],
+            'limit_relation' => null,
+            'super_admin_only' => false,
+            'platform_console_only' => false,
+            'in_plan_form' => false,
+        ],
+        'catalog_delivery_methods' => [
+            'label' => 'Métodos de entrega del catálogo',
+            'permission_prefixes' => ['catalog-deliveries'],
+            'limit_relation' => null,
+            'super_admin_only' => false,
+            'platform_console_only' => false,
+            'in_plan_form' => false,
+        ],
         'scanner' => [
             'label' => 'Escáner de precios',
             'permission_prefixes' => [],
